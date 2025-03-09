@@ -19,19 +19,24 @@ function App() {
 
   return (
     <div>
-      {!loggedIn ? (<Login onLogin={handleLogin}/>) : (
+      {!loggedIn ? (
         <Router>
-          <Navigation/>
-          <Routes>
-            <Route path="AddCar" element={<AddCar/>}/>
-            <Route path="CarList" element={<CarList/>}/>
+          <Routes>            
+            <Route path="/" element={<Login onLogin={handleLogin}/>}/>
+            <Route path="signup" element={<AddCar/>}/>
           </Routes>
-        </Router>
+        </Router>        
+      ) : (
+        <div>
+          <Router>
+            <Navigation/><button type="button" onClick={() =>logout()}>Log out</button>
+            <Routes>
+              <Route path="AddCar" element={<AddCar/>}/>
+              <Route path="CarList" element={<CarList/>}/>
+            </Routes>
+          </Router>          
+        </div>
       )}
-      
-        
-        <button type="button" onClick={() =>logout()}>Log out</button>
-      
     </div>
   );
 }
