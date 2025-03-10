@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Login from "./login";
 import AddCar from "./addcar";
 import CarList from "./carList";
+import Signup from "./signup";
 import Navigation from './navigation';
 import React, { useState } from 'react';
 
@@ -14,7 +15,8 @@ function App() {
   };
 
   const logout = () => {
-    setLoggedIn(false);
+    setLoggedIn(false);    
+    window.open("http://localhost:3000","_self");
   };
 
   return (
@@ -23,7 +25,7 @@ function App() {
         <Router>
           <Routes>            
             <Route path="/" element={<Login onLogin={handleLogin}/>}/>
-            <Route path="signup" element={<AddCar/>}/>
+            <Route path="signup" element={<Signup onLogin={handleLogin}/>}/>
           </Routes>
         </Router>        
       ) : (

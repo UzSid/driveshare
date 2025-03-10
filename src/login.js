@@ -32,11 +32,11 @@ class Login extends React.Component{
         fetch("http://localhost/DriveShare/src/accountInfo.php")
         .then(response => response.json())
         .then(json => {
-            sessionStorage.setItem("passwords", JSON.stringify(json));				
+            sessionStorage.setItem("accountInfo", JSON.stringify(json));				
         });
-        let arr = JSON.parse(sessionStorage.getItem("passwords"));
+        let arr = JSON.parse(sessionStorage.getItem("accountInfo"));
         for (var i = 0; i < arr.length; i++) {     
-            if (arr[i].email === this.email && arr[i].password === this.password) {
+            if (arr[i].email.toLowerCase() === this.email.toLowerCase() && arr[i].password === this.password) {
                 sessionStorage.setItem("UID", arr[i].UID);
                 sessionStorage.setItem("name", arr[i].name);
                 this.props.onLogin();
@@ -60,11 +60,12 @@ class Login extends React.Component{
                     <input type="password" onChange={e => this.setPassword(e.target.value)} />
                     </label>
                     {this.state.invalid === true && <p>Invalid login information</p>}
+                    <br/><br/>
                     <button type="button" onClick={() => this.submit()}>Submit</button>
                 </form>
                 <br/>
                 <nav>
-                    <Link to="./signup">Don't have an account? Sign up here.</Link>
+                    <Link to="/signup">Don't have an account? Sign up here.</Link>
                 </nav>
             </div>
         )
