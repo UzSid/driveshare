@@ -70,26 +70,25 @@ class Signup extends React.Component{
                 <h1>Sign Up</h1>
                 <form action="http://localhost/DriveShare/src/signup.php" method="GET">
                     <p>full name</p>
-                    <input type="text" name="name" required/>
+                    <input type="text" name="name" maxlength="64" required/>
                     <p>email</p>
-                    <input type="text" name="email" required value={this.state.email} onChange={this.setEmail}/>
+                    <input type="text" name="email" maxlength="64" required value={this.state.email} onChange={this.setEmail}/>
                     {this.state.invalidEmail === true && <p>email address is already in use</p>}
                     <p>password</p>
-                    <input type="password" name="password1" required value={this.state.password1} onChange={this.setPassword1}/>
+                    <input type="password" name="password1" maxlength="64" required value={this.state.password1} onChange={this.setPassword1}/>
                     <p>confirm password</p>
-                    <input type="password" name="password2" required value={this.state.password2} onChange={this.setPassword2}/>
+                    <input type="password" name="password2" maxlength="64" required value={this.state.password2} onChange={this.setPassword2}/>
                     {this.state.invalidPassword === true && <p>passwords do not match</p>}
                     <p>account balance</p>
-                    <input type="text" name="balance" required/>
+                    <input type="number" name="balance" maxlength="11" required/>
                     <p>security question 1: What city were you born in?</p>
-                    <input type="text" name="secq1" required/>
+                    <input type="text" name="secq1" maxlength="1000" required/>
                     <p>security question 2: What was the make and model of your first car?</p>
-                    <input type="text" name="secq2" required/>
+                    <input type="text" name="secq2" maxlength="1000" required/>
                     <p>security question 3: What was the first exam you failed?</p>
-                    <input type="text" name="secq3" required/>
+                    <input type="text" name="secq3" maxlength="1000" required/>
                     <br/><br/>
-                    {this.state.invalidEmail === true || this.state.invalidPassword === true ? (<input type="submit" disabled/>):(<input type="submit"/>)}
-                    
+                    {this.state.invalidEmail === true || this.state.invalidPassword === true ? (<input type="submit" disabled/>):(<input type="submit"/>)}                    
                 </form>
                 <br/>
                 <nav>

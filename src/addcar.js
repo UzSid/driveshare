@@ -22,9 +22,13 @@ class AddCar extends React.Component {
   }
 
   setDates = (date) => {
-    this.state.dates.push(date);
-    this.setState(this.state.dates);
-    this.updateString();
+    if (!this.state.dates.includes(date)) {
+      this.state.dates.push(date);
+      this.state.dates.sort();
+      this.setState(this.state.dates);
+      this.updateString();      
+    }
+
   }
 
   delete = (date) => {
@@ -61,15 +65,15 @@ class AddCar extends React.Component {
           <input type="hidden" name="name" value={sessionStorage.getItem("name")}/>
           <input type="hidden" name="SQLString" value={this.SQLString}/>
           <label for="model">Model: </label><br/>
-          <input type="text" name="model" required/><br/><br/>
+          <input type="text" name="model" maxlength="64" required/><br/><br/>
           <label for="year">Year:</label><br/>
-          <input type="text" name="year" required/><br/><br/>
+          <input type="number" name="year" maxlength="4" required/><br/><br/>
           <label for="Mileage">Mileage:</label><br/>
-          <input type="text" name="mileage" required/><br/><br/>
+          <input type="number" name="mileage" maxlength="11" required/><br/><br/>
           <label for="location">Location:</label><br/>
-          <input type="text" name="location" required/><br/><br/>
+          <input type="text" name="location" maxlength="64" required/><br/><br/>
           <label for="price">Price:</label><br/>
-          <input type="text" name="price" required/><br/><br/>
+          <input type="number" name="price" maxlength="12" required/><br/><br/>
           <label for="availability">Availability:</label>
           <input type="date" id="availability" name="availability" onChange={e => this.setDates(e.target.value)}/>          
           {this.state.dates.map((date) => (

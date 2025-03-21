@@ -3,7 +3,7 @@
 	try {
 		$conn = new PDO('mysql:host=localhost;dbname=driveshare;', 'root', '');
         $sql = "INSERT INTO driveshare.cars (UID, owner, model, year, mileage, location, price) 
-            VALUES ('".$_GET['UID']."', '".$_GET['name']."', '".$_GET['model']."', '".$_GET['year']."', '".$_GET['mileage']."', '".$_GET['location']."', '".$_GET['price']."');";
+            VALUES ('".$_GET['UID']."', '".str_replace("'", "''", $_GET['name'])."', '".str_replace("'", "''", $_GET['model'])."', '".$_GET['year']."', '".$_GET['mileage']."', '".str_replace("'", "''", $_GET['location'])."', '".$_GET['price']."');";
         $conn->exec($sql);
         //echo "<script> location.href='http://localhost:3000/'; </script>";
     } catch(PDOException $e) {

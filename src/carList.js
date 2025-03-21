@@ -1,7 +1,10 @@
 import React from "react";
+import Rent from "./rent";
+import Verify from "./verification";
 
 class Car {
-    constructor(owner, model, year, mileage, location, price, availability) {
+    constructor(CID, owner, model, year, mileage, location, price, availability) {
+        this.CID = CID;
         this.owner = owner;
         this.model = model;
         this.year = year;
@@ -37,7 +40,7 @@ class CarBuilder{
                     this.dates.push(availability[j].date);
                 }
             }
-            this.list.push(new Car(carList[i].owner, carList[i].model, carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates));
+            this.list.push(new Car(carList[i].CID, carList[i].owner, carList[i].model, carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates));
             this.dates = [];
         }
     }
@@ -50,7 +53,9 @@ class CarList extends React.Component {
         this.state = {
             searchValue: "",
             list: [],
-            filteredList: []
+            filteredList: [],
+            //for verification
+            verified: false
         };
         //this.setText = this.setText.bind(this);
     }
@@ -70,7 +75,11 @@ class CarList extends React.Component {
             }
         }
         this.setState({searchValue, filteredList});
-        };
+    };
+
+    handleVerification = () => {
+        this.setState({verified: true});
+    }
 
     render() {
         const builder = new CarBuilder();
@@ -79,6 +88,8 @@ class CarList extends React.Component {
         //this.state.filteredList = builder.list;
         return (
             <div>
+                <Verify verify={this.handleVerification}/>
+                <h3>Search for a car:</h3>
                 <input type="text" value={this.state.searchValue} onChange={this.handleSearch}/>
                 {this.state.searchValue.length > 0 ?
                     <div>
@@ -89,10 +100,9 @@ class CarList extends React.Component {
                                 <p>Year: {car.year}</p>
                                 <p>Mileage: {car.mileage}</p>
                                 <p>Location: {car.location}</p>
-                                <p>Price: {car.price}</p>
-                                <p>Availability:</p> {car.availability.map((day) => (
-                                    <p>{day}</p>
-                                ))}<br/>
+                                <p>Price per day: {car.price}</p>
+                                <Rent availability={car.availability} CID={car.CID} verified={this.state.verified} price={car.price}/>
+                                <br/><br/>
                             </div>
                         ))}
                     </div>
@@ -105,10 +115,9 @@ class CarList extends React.Component {
                                 <p>Year: {car.year}</p>
                                 <p>Mileage: {car.mileage}</p>
                                 <p>Location: {car.location}</p>
-                                <p>Price: {car.price}</p>
-                                <p>Availability:</p> {car.availability.map((day) => (
-                                    <p>{day}</p>
-                                ))}<br/>
+                                <p>Price per day: {car.price}</p>
+                                <Rent availability={car.availability} CID={car.CID} verified={this.state.verified} price={car.price}/>
+                                <br/><br/>
                             </div>
                         ))}
                     </div>
