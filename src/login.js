@@ -11,7 +11,7 @@ class Login extends React.Component{
         this.email = null;
         this.password = null;
         this.state = {
-            invalid: false
+            invalid: false //for invalid logins
         };
 
         //Singleton
@@ -20,10 +20,12 @@ class Login extends React.Component{
         }
     }
 
+    //Update password with each change
     setPassword = (newPassword) => {
         this.password = newPassword;
     }
 
+    //Update email with each change
     setEmail = (newEmail) => {
         this.email = newEmail;
     }
@@ -33,15 +35,18 @@ class Login extends React.Component{
             this.setState({invalid: true});
             return;
         }
+        //Get account info from database
         let response = await fetch("http://localhost/DriveShare/src/accountInfo.php");
-        let arr = await response.json();
-        //sessionStorage.setItem("accountInfo", JSON.stringify(data));				
-        for (var i = 0; i < arr.length; i++) {     
-            if (arr[i].email.toLowerCase() === this.email.toLowerCase() && arr[i].password === this.password) {
-                sessionStorage.setItem("UID", arr[i].UID);
-                sessionStorage.setItem("name", arr[i].name);
-                sessionStorage.setItem("email", arr[i].email);
-                sessionStorage.setItem("password", arr[i].password);
+        let accountInfo = await response.json();		
+        for (var i = 0; i < accountInfo.length; i++) {
+            //Find email and password match
+            if (accountInfo[i].email.toLowerCase() === this.email.toLowerCase() && accountInfo[i].password === this.password) {
+                //Set sessionStorage items for easy accesss later
+                sessionStorage.setItem("UID", accountInfo[i].UID);
+                sessionStorage.setItem("name", accountInfo[i].name);
+                sessionStorage.setItem("email", accountInfo[i].email);
+                sessionStorage.setItem("password", accountInfo[i].password);
+                //Log in (see App.js)
                 this.props.onLogin();
             }
             else {
@@ -63,12 +68,13 @@ class Login extends React.Component{
                     <p>password</p>
                     <input type="password" maxlength="64" onChange={e => this.setPassword(e.target.value)}/>
                     </label>
-                    {this.state.invalid === true && <p>Invalid login information</p>}
+                    {this.state.invalid === true && <p>Invalid login information</p> /*Show message if login is invalid*/}
                     <br/><br/>
                     <button type="button" onClick={() => this.submit()}>Submit</button>
                 </form>
                 <br/>
                 <nav>
+                    {/*Links to other login-related pages*/}
                     <Link to="/signup">Don't have an account? Sign up here.</Link>
                     <br/><br/>
                     <Link to="/recovery">Forgot your password?</Link>
@@ -78,5 +84,6 @@ class Login extends React.Component{
     }
 }
 
+//create singleton object
 const login = Object.freeze(new Login());
 export default Login;

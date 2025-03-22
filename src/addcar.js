@@ -4,66 +4,38 @@ class AddCar extends React.Component {
   constructor() {
     super();
     this.state = {
-      dates: []
+      dates: [] //keeps list of availability dates
     };
-    this.SQLString = "";
-    try {
-      fetch("http://localhost/DriveShare/src/getCarID.php")
-      .then(response => response.json())
-      .then(json => {
-          sessionStorage.setItem("maxID", JSON.stringify(json));				
-      });
-      let arr = JSON.parse(sessionStorage.getItem("maxID"));
-      this.maxID = Number(arr[0].maxID) + 1;
-    }
-    catch {
-      this.maxID = 1
-    }
   }
 
   setDates = (date) => {
+    //when a date is selected in the calendar, it is added to the array
     if (!this.state.dates.includes(date)) {
       this.state.dates.push(date);
       this.state.dates.sort();
       this.setState(this.state.dates);
-      this.updateString();      
     }
 
   }
 
   delete = (date) => {
+    //when a date is deleted, it is deleted from the array
     const index = this.state.dates.indexOf(date);
     if (index > -1) {
       this.state.dates.splice(index, 1);
       this.setState(this.state.dates);
     }
-    this.updateString();
-  }
-
-  updateString = () => {
-    this.SQLString = "";
-    for (var i=0; i < this.state.dates.length; i++) {
-      this.SQLString += "(";
-      this.SQLString += this.maxID.toString();
-      this.SQLString += ",'";
-      this.SQLString += this.state.dates[i].toString();
-      if (i === this.state.dates.length - 1) {
-        this.SQLString += "');"
-      }
-      else {
-        this.SQLString += "'),"
-      }      
-    }
-    console.log(this.SQLString);
   }
 
   render() {
     return (
       <div>
         <form action="http://localhost/DriveShare/src/newCarAndAvail.php" method="GET">
+          {/*Extra information to be sent to the php file*/}
           <input type="hidden" name="UID" value={sessionStorage.getItem("UID")}/>
           <input type="hidden" name="name" value={sessionStorage.getItem("name")}/>
-          <input type="hidden" name="SQLString" value={this.SQLString}/>
+          <input type="hidden" name="dates" value={JSON.stringify(this.state.dates)}/>
+          {/*Information fields to be filled by the user and sent to the php file*/}
           <label for="model">Model: </label><br/>
           <input type="text" name="model" maxlength="64" required/><br/><br/>
           <label for="year">Year:</label><br/>
@@ -75,7 +47,8 @@ class AddCar extends React.Component {
           <label for="price">Price:</label><br/>
           <input type="number" name="price" maxlength="12" required/><br/><br/>
           <label for="availability">Availability:</label>
-          <input type="date" id="availability" name="availability" onChange={e => this.setDates(e.target.value)}/>          
+          {/*A calendar for choosing dates*/}
+          <input type="date" id="availability" name="availability" onChange={e => this.setDates(e.target.value)}/>
           {this.state.dates.map((date) => (
             <div>
               <p>{date} <button type="button" onClick={() => this.delete(date)}>X</button></p>

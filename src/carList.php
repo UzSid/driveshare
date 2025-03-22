@@ -1,16 +1,16 @@
 <?php
     header("Access-Control-Allow-Origin: *");
 	try {
-		$conn = new PDO('mysql:host=localhost;dbname=driveshare;', 'root', '');
+		$conn = new PDO('mysql:host=localhost;dbname=driveshare;', 'root', ''); //connect to database
 	} catch(PDOException $e) {
 		echo "Connection failed: " . $e->getMessage();
 	}
-	$stmt = $conn->query("SELECT * FROM driveshare.cars");
+	$stmt = $conn->query("SELECT * FROM driveshare.cars"); //select all car information
 	while ($row = $stmt->fetch())
 	{
 		$rows[] = $row;
 	}
 	$encodedData = json_encode($rows);
 	$conn = null;
-	echo $encodedData;
+	echo $encodedData; //send it back to the site
 ?>

@@ -11,9 +11,7 @@ import Home from "./home";
 import React, { useState } from 'react';
 
 function App() {
-  
   const [loggedIn, setLoggedIn] = useState(false);
-  //sessionStorage.setItem("loggedIn", "false");
 
   const handleLogin = () => {
     setLoggedIn(true);
@@ -23,12 +21,13 @@ function App() {
   const handleLogout = () => {
     setLoggedIn(false);
     sessionStorage.setItem("loggedIn", "false");
-    window.open("http://localhost:3000","_self");
+    window.open("http://localhost:3000","_self"); //returns to login page
   };
 
   return (
     <div>
-      {sessionStorage.getItem("loggedIn") !== "true" ? (
+      {/*If not logged in, show login, signup, and recovery. Must log in to use other site functions.*/}
+      {sessionStorage.getItem("loggedIn") !== "true" && !loggedIn ? (
         <Router>
           <Routes>            
             <Route path="/" element={<Login onLogin={handleLogin}/>}/>

@@ -2,6 +2,19 @@ import React from "react";
 import Rent from "./rent";
 import Verify from "./verification";
 
+//Director
+class Director {
+    buildCars(abstractBuilder) {
+        return abstractBuilder.buildCars();
+    }
+}
+
+//Abstract builder
+class AbstractBuilder {
+    buildCars() {};
+}
+
+//Product
 class Car {
     constructor(CID, owner, model, year, mileage, location, price, availability) {
         this.CID = CID;
@@ -15,8 +28,10 @@ class Car {
     }
 }
 
-class CarBuilder{
+//Concrete builder
+class CarBuilder extends AbstractBuilder {
     constructor() {
+        super();
         this.list = [];
         this.dates = [];
     }
@@ -40,9 +55,11 @@ class CarBuilder{
                     this.dates.push(availability[j].date);
                 }
             }
+            //Push products to list
             this.list.push(new Car(carList[i].CID, carList[i].owner, carList[i].model, carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates));
             this.dates = [];
         }
+        return this.list;
     }
 }
 
@@ -57,13 +74,13 @@ class CarList extends React.Component {
             //for verification
             verified: false
         };
-        //this.setText = this.setText.bind(this);
     }
 
     handleSearch = (event) => {
         const searchValue = event.target.value;
         const filteredList = [];
         for (var i = 0; i < this.state.list.length; i++) {
+            //Add cars to filtered list if their name, location, or availability matches what is in the search bar
             if (this.state.list[i].model.toLowerCase().includes(searchValue.toLowerCase())) {
                 filteredList.push(this.state.list[i]);
             }
@@ -82,16 +99,17 @@ class CarList extends React.Component {
     }
 
     render() {
-        const builder = new CarBuilder();
-        builder.buildCars();
-        this.state.list = builder.list;
-        //this.state.filteredList = builder.list;
+        //Create director and builder object and build
+        const director = new Director();
+        const carBuilder = new CarBuilder();
+        this.state.list = director.buildCars(carBuilder);
         return (
             <div>
-                <Verify verify={this.handleVerification}/>
+                <Verify verify={this.handleVerification}/> {/*Verification component; must verify before renting*/}
                 <h3>Search for a car:</h3>
-                <input type="text" value={this.state.searchValue} onChange={this.handleSearch}/>
-                {this.state.searchValue.length > 0 ?
+                <input type="text" value={this.state.searchValue} onChange={this.handleSearch}/> {/*Search bar*/}
+                <p>Search by name, location, or availability</p><br/>
+                {this.state.searchValue.length > 0 ? //if there is something in the search bar, show filtered list. Otherwise, show the whole thing.
                     <div>
                         {this.state.filteredList.map((car) => (
                             <div>

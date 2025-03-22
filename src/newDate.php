@@ -1,8 +1,8 @@
 <?php
     header("Access-Control-Allow-Origin: *");
 	try {
-		$conn = new PDO('mysql:host=localhost;dbname=driveshare;', 'root', '');
-        $sql = "INSERT INTO driveshare.availability (CID, date) VALUES ('".$_GET['CID']."', '".$_GET['date']."');";
+		$conn = new PDO('mysql:host=localhost;dbname=driveshare;', 'root', ''); //connect to database
+        $sql = "INSERT INTO driveshare.availability (CID, date) VALUES ('".$_GET['CID']."', '".$_GET['date']."');"; //add date
         $conn->exec($sql);
         echo "<script> location.href='http://localhost:3000/MyListings'; </script>";
     } catch(PDOException $e) {
