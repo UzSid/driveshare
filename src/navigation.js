@@ -5,6 +5,7 @@ function Navigation(props) {
   return (
     <nav>
       <p>
+        {/*Links to different pages and a logout button*/}
         <Link to="/AddCar">Host a Car </Link>|
         <Link to="/CarList"> Browse Cars </Link>|
         <Link to="/MyListings"> My Cars </Link>|        

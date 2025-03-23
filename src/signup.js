@@ -1,34 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-//Singleton
-let instance = null;
-
 class Signup extends React.Component{
 
     constructor(props) {
         super(props)
         this.state = {
+            //variables to hold user inputs
             invalidEmail: false,
             invalidPassword: false,
             email: null,
             password1: null,
             password2: null
         };
+        //get account info
         fetch("http://localhost/DriveShare/src/accountInfo.php")
         .then(response => response.json())
         .then(json => {
             sessionStorage.setItem("accountInfo", JSON.stringify(json));				
         });
-        
-        //Singleton
-        if (!instance) {
-            instance = this;
-        }
     }
 
+    //handles first password entry
     setPassword1 = (event) => {
         const password1 = event.target.value;
+        //passwords must match
         if (password1 === this.state.password2) {
             this.setState({invalidPassword: false});
         }
@@ -38,8 +34,10 @@ class Signup extends React.Component{
         this.setState({password1});
     }
 
+    //handles password confirmation
     setPassword2 = (event) => {
         const password2 = event.target.value;
+        //passwords must match
         if (this.state.password1 === password2) {
             this.setState({invalidPassword: false});
         }
@@ -49,10 +47,12 @@ class Signup extends React.Component{
         this.setState({password2});
     }
 
+    //handles email entry
     setEmail = (event) => {
         const email = event.target.value;
         let arr = JSON.parse(sessionStorage.getItem("accountInfo"));
-        for (var i = 0; i < arr.length; i++) {     
+        //check if the password is taken
+        for (var i = 0; i < arr.length; i++) {
             if (arr[i].email.toLowerCase() === email.toLowerCase()) {
                 this.setState({invalidEmail: true});
                 break;
@@ -69,6 +69,7 @@ class Signup extends React.Component{
             <div>
                 <h1>Sign Up</h1>
                 <form action="http://localhost/DriveShare/src/signup.php" method="GET">
+                    {/*Users must enter their information and will be told if it is invalid*/}
                     <p>full name</p>
                     <input type="text" name="name" maxlength="64" required/>
                     <p>email</p>
@@ -88,9 +89,11 @@ class Signup extends React.Component{
                     <p>security question 3: What was the first exam you failed?</p>
                     <input type="text" name="secq3" maxlength="1000" required/>
                     <br/><br/>
+                    {/*Submit button is disabled unless user's inputs are valid*/}
                     {this.state.invalidEmail === true || this.state.invalidPassword === true ? (<input type="submit" disabled/>):(<input type="submit"/>)}                    
                 </form>
                 <br/>
+                {/*link back to login page*/}
                 <nav>
                     <Link to="/">Already have an account? Log in here.</Link>
                 </nav>

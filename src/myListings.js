@@ -1,5 +1,6 @@
 import React from "react";
 
+//use modified version of carList.js
 class Car {
     constructor(CID, UID, ownerName, model, year, mileage, location, price, availability, rentedDates) {
         this.CID = CID;
@@ -35,16 +36,19 @@ class CarBuilder{
     }
 
     buildCars() {
+        //get car data
         fetch("http://localhost/DriveShare/src/carList.php")
         .then(response => response.json())
         .then(json => {
             sessionStorage.setItem("cars", JSON.stringify(json));				
         });
+        //get availability data
         fetch("http://localhost/DriveShare/src/getAvail.php")
         .then(response => response.json())
         .then(json => {
             sessionStorage.setItem("availability", JSON.stringify(json));			
         });
+        //get rental date data
         fetch("http://localhost/DriveShare/src/getRents.php")
         .then(response => response.json())
         .then(json => {
@@ -53,16 +57,20 @@ class CarBuilder{
         let carList = JSON.parse(sessionStorage.getItem("cars"));
         let availability = JSON.parse(sessionStorage.getItem("availability"));
         let rentedDateList = JSON.parse(sessionStorage.getItem("rentedDateList"));
+        //for each car:
         for (var i = 0; i < carList.length; i++) {
+            //get their availability
             for (var j = 0; j < availability.length; j++) {
                 if (availability[j].CID === carList[i].CID) {
                     this.dates.push(availability[j].date);
                 }
             }
+            //get the days they are rented
             for (var j = 0; j < rentedDateList.length; j++) {
                 if (rentedDateList[j].CID === carList[i].CID) {
                     this.rentedDates.push(rentedDateList[j].date);
                 }
+                //if the user rented them, put them in a separate list for keeping track of what they rent
                 if (rentedDateList[j].UID == sessionStorage.getItem("UID") && !this.rentedList.includes(carList[i])) {
                     this.rentedList.push(carList[i]);
                 }
@@ -71,6 +79,7 @@ class CarBuilder{
             this.dates = [];
             this.rentedDates = [];
         }
+        //get the rented dates of cars the user rented
         for (var i = 0; i < this.rentedList.length; i++) {
             for (var j = 0; j < rentedDateList.length; j++) {
                 if (rentedDateList[j].CID === this.rentedList[i].CID) {
@@ -91,17 +100,17 @@ class MyListings extends React.Component {
             listings: [],
             rentedCars: []
         };
-        //this.setText = this.setText.bind(this);
     }
 
     render() {
+        //build car and rental lists
         const builder = new CarBuilder();
         builder.buildCars();
         this.state.listings = builder.listings;
         this.state.rentedCars = builder.rentedCars;
-        //this.state.filteredList = builder.list;
         return (
             <div>
+                {/*Cars the user currently has booked*/}
                 <h3>Cars you currently have booked</h3>
                 {this.state.rentedCars.map((car) => (
                     <div>
@@ -114,12 +123,14 @@ class MyListings extends React.Component {
                         <br/>
                     </div>
                 ))}
+                {/*Cars the user has listed for rental*/}
                 <h3>Cars you have listed for rental</h3>
                 {this.state.listings.map((car) => (
                     <div>
                         {car.UID == sessionStorage.getItem("UID") &&
                             <div>
                                 <div>
+                                    {/*If the car is not rented, it can be deleted*/}
                                     {car.rentedDates.length > 0 ? <p>Model: {car.model} <i>rented</i></p>
                                     :
                                     <form action="http://localhost/DriveShare/src/deleteCar.php" method="GET">
@@ -128,6 +139,7 @@ class MyListings extends React.Component {
                                     </form>
                                     }
                                 </div>
+                                {/*car info that can be edited*/}
                                 <p>Year: {car.year}</p>
                                 <form action="http://localhost/DriveShare/src/editCar.php" method="GET">
                                     <input type="hidden" name="column" value="mileage"/>
@@ -144,6 +156,7 @@ class MyListings extends React.Component {
                                     <input type="hidden" name="CID" value={car.CID}/>
                                     <p>Price: {car.price} <input type="number" name="value" maxlength="11" required/> <input type="submit" value="Edit"/></p>
                                 </form>
+                                {/*Show availability dates. Dates can be deleted if they are not rented.*/}
                                 <p>Availability:</p> {car.availability.map((day) => (
                                     <div>
                                         {car.rentedDates.includes(day) ?
@@ -157,6 +170,7 @@ class MyListings extends React.Component {
                                         }
                                     </div>
                                 ))}
+                                {/*new availability dates can be added*/}
                                 <form action="http://localhost/DriveShare/src/newDate.php" method="GET">
                                     <input type="hidden" name="CID" value={car.CID}/>
                                     <label for="availability">Add availability date:</label>
