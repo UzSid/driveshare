@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FormDirector, TextEntry, Button, PasswordEntry } from './UIComponents';
 
-//Singleton
+//for singleton
 let instance = null;
-
-class Login extends React.Component{
+//also the mediator
+class Login extends React.Component {
 
     constructor(props) {
         super(props)
@@ -14,70 +15,65 @@ class Login extends React.Component{
             invalid: false //for invalid logins
         };
 
-        //Singleton
+        //for singleton
         if (!instance) {
             instance = this;
         }
     }
 
-    //Update password with each change
-    setPassword = (newPassword) => {
-        this.password = newPassword;
-    }
-
     //Update email with each change
-    setEmail = (newEmail) => {
-        this.email = newEmail;
+    setEmail = (event) => {
+        this.email = event.target.value;
     }
 
-    async submit() {
-        if (this.email === null || this.password === null) {
-            this.setState({invalid: true});
-            return;
-        }
+    //Update password with each change
+    setPassword = (event) => {
+        this.password = event.target.value;
+    }
+
+    submit = async() => {
         //Get account info from database
         let response = await fetch("http://localhost/DriveShare/src/accountInfo.php");
-        let accountInfo = await response.json();		
-        for (var i = 0; i < accountInfo.length; i++) {
-            //Find email and password match
-            if (accountInfo[i].email.toLowerCase() === this.email.toLowerCase() && accountInfo[i].password === this.password) {
-                //Set sessionStorage items for easy accesss later
-                sessionStorage.setItem("UID", accountInfo[i].UID);
-                sessionStorage.setItem("name", accountInfo[i].name);
-                sessionStorage.setItem("email", accountInfo[i].email);
-                sessionStorage.setItem("password", accountInfo[i].password);
-                //Log in (see App.js)
-                this.props.onLogin();
+        let accountInfo = await response.json();
+        try {
+            for (var i = 0; i < accountInfo.length; i++) {
+                //Find email and password match
+                if (accountInfo[i].email.toLowerCase() === this.email.toLowerCase() && accountInfo[i].password === this.password) {
+                    //Set sessionStorage items for easy accesss later
+                    sessionStorage.setItem("UID", accountInfo[i].UID);
+                    sessionStorage.setItem("name", accountInfo[i].name);
+                    sessionStorage.setItem("email", accountInfo[i].email);
+                    sessionStorage.setItem("password", accountInfo[i].password);
+                    //Log in (see App.js)
+                    this.props.onLogin();
+                }
+                else {
+                    this.setState({invalid: true});
+                }
             }
-            else {
-                this.setState({invalid: true});
-            }
-        };
+        }
+        catch {
+            this.setState({invalid: true});
+        }
     }
 
     render() {
         return (
-            <div>
+            <div class="loginpages">
                 <h1>Log In</h1>
-                <form>
-                    <label>
-                    <p>email</p>
-                    <input type="text" maxlength="64" onChange={e => this.setEmail(e.target.value)}/>
-                    </label>
-                    <label>
-                    <p>password</p>
-                    <input type="password" maxlength="64" onChange={e => this.setPassword(e.target.value)}/>
-                    </label>
-                    {this.state.invalid === true && <p>Invalid login information</p> /*Show message if login is invalid*/}
-                    <br/><br/>
-                    <button type="button" onClick={() => this.submit()}>Submit</button>
-                </form>
                 <br/>
+                <p>Email address</p>
+                <TextEntry setValue={this.setEmail}/>
+                <p>Password</p>
+                <PasswordEntry setPassword={this.setPassword}/>
+                {this.state.invalid === true ? <p class="invalid">Invalid login information</p> /*Show message if login is invalid*/ : <div><br/><br/></div>}                
+                <Button submit={this.submit} text="Submit"/>
+                <br/><br/><br/>
                 <nav>
                     {/*Links to other login-related pages*/}
-                    <Link to="/signup">Don't have an account? Sign up here.</Link>
+                    <Link to="/signup" class="link">Don't have an account? Sign up here.</Link>
                     <br/><br/>
-                    <Link to="/recovery">Forgot your password?</Link>
+                    <Link to="/recovery" class="link">Forgot your password?</Link>
                 </nav>
             </div>
         )

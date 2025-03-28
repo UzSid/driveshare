@@ -1,4 +1,5 @@
 import React from "react";
+import { Button, PasswordEntry } from "./UIComponents";
 
 //subject
 const verificationInterface = {
@@ -36,20 +37,21 @@ class Verify extends React.Component {
             invalid: false,
             verified: false,
             balance: 0, //default balance
+            password: null
         };
-        this.password = null;
         this.verifProxy = new VerificationProxy();
     }
 
     //handle password changes
-    setPassword = (newPassword) => {
-        this.password = newPassword;
+    setPassword = (event) => {
+        const password = event.target.value;
+        this.setState({password});
     }
 
-    async submit() {
+     submit = async() => {
         //use verification proxy to set verification status
-        this.setState({invalid: this.verifProxy.verify(this.password)[0]});
-        this.setState({verified: this.verifProxy.verify(this.password)[1]});
+        this.setState({invalid: this.verifProxy.verify(this.state.password)[0]});
+        this.setState({verified: this.verifProxy.verify(this.state.password)[1]});
         if (this.state.verified === true) {this.props.verify();} //enable renting if verification is successful
         //get account balance
         let response = await fetch("http://localhost/DriveShare/src/accountInfo.php");
@@ -66,11 +68,21 @@ class Verify extends React.Component {
             <div>
                 <form>
                     <h3>Enter your password to verify yourself before renting a car:</h3>
-                    <input type="password" maxlength="64" onChange={e => this.setPassword(e.target.value)}/>
-                    <button type="button" onClick={() => this.submit()}>Verify</button>
-                    {this.state.invalid === true && <p>Invalid password</p>}
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <PasswordEntry setPassword={this.setPassword} /* style={{"width":"20%"}} *//>
+                                </td>
+                                <td>
+                                    <Button submit={this.submit} /* style={{"width":"10%"}} */ text="Verify"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    {this.state.invalid === true && <p class="invalid">Invalid password</p>}
                     {/*If verified, tell the user their balance*/}
-                    {this.state.verified === true && <p>Verified | Your account balance: ${this.state.balance}</p>}
+                    {this.state.verified === true && <p style={{"color":"green", "font-weight":"bold"}}>Verified; Your account balance is ${this.state.balance}</p>}
                 </form>
             </div>
         );

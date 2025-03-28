@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from 'react-router-dom';
+import { FormDirector, TextEntry, Button } from './UIComponents';
 
 //handler class
 class Handler {
@@ -77,13 +78,13 @@ class Q3Handler extends Handler {
 
 class Recovery extends React.Component {
     constructor(props) {
-        super(props)
-        //variables for holding user's answers
-        this.email = null;
-        this.question1 = null;
-        this.question2 = null;
-        this.question3 = null;
+        super(props);
         this.state = {
+            //variables for holding user's answers
+            email: null,
+            question1: null,
+            question2: null,
+            question3: null,
             //track invalid responses
             invalidEmail: false,
             invalidQ1: false,
@@ -93,23 +94,27 @@ class Recovery extends React.Component {
     }
 
     //functions for holding user's answers
-    setEmail = (newEmail) => {
-        this.email = newEmail;
+    setEmail = (event) => {
+        const email = event.target.value;
+        this.setState({email});
     }
 
-    setQuestion1 = (newQuestion1) => {
-        this.question1 = newQuestion1;
+    setQuestion1 = (event) => {
+        const question1 = event.target.value;
+        this.setState({question1});
     }
 
-    setQuestion2 = (newQuestion2) => {
-        this.question2 = newQuestion2;
+    setQuestion2 = (event) => {
+        const question2 = event.target.value;
+        this.setState({question2});
     }
 
-    setQuestion3 = (newQuestion3) => {
-        this.question3 = newQuestion3;
+    setQuestion3 = (event) => {
+        const question3 = event.target.value;
+        this.setState({question3});
     }
 
-    async submit() {
+    submit = async() => {
         //get account info
         let response = await fetch("http://localhost/DriveShare/src/accountInfo.php");
         let accountInfo = await response.json();
@@ -122,7 +127,7 @@ class Recovery extends React.Component {
         handleq1.setSuccessor(handleq2);
         handleq2.setSuccessor(handleq3);
         //have the first handler in the chain begin; if a number is returned, the corresponding error will be shown
-        let stateNum = handleemail.handleQuestion(accountInfo, this.email, this.question1, this.question2, this.question3);
+        let stateNum = handleemail.handleQuestion(accountInfo, this.state.email, this.state.question1, this.state.question2, this.state.question3);
         if (stateNum === 0) {
             this.setState({invalidEmail: true});
         }
@@ -151,28 +156,28 @@ class Recovery extends React.Component {
 
     render() {
         return (
-            <div>
-                <h1>Password recovery</h1>
-                <p>email</p>
+            <div class="loginpages">
+                <h1>Password Recovery</h1>
+                <p>Email address</p>
                 {/*form for entering email and answers*/}
-                <input type="text" name="email" required onChange={e => this.setEmail(e.target.value)}/>
+                <TextEntry setValue={this.setEmail}/>
                 {/*corrensponding errors are shown if user makes a mistake*/}
-                {this.state.invalidEmail === true && <p>email address not found</p>}
-                <p>security question 1: What city were you born in?</p>
-                <input type="text" name="secq1" required onChange={e => this.setQuestion1(e.target.value)}/>
-                {this.state.invalidQ1 === true && <p>incorrect answer</p>}
-                <p>security question 2: What was the make and model of your first car?</p>
-                <input type="text" name="secq2" required onChange={e => this.setQuestion2(e.target.value)}/>
-                {this.state.invalidQ2 === true && <p>incorrect answer</p>}
-                <p>security question 3: What was the first exam you failed?</p>
-                <input type="text" name="secq3" required onChange={e => this.setQuestion3(e.target.value)}/>
-                {this.state.invalidQ3 === true && <p>incorrect answer</p>}
-                <br/><br/>
-                <button type="button" onClick={() => this.submit()}>Submit</button>
-                <br/><br/>
+                {this.state.invalidEmail === true && <p class="invalid">Email address not found</p>}
+                <p>Security question 1: What city were you born in?</p>
+                <TextEntry setValue={this.setQuestion1}/>
+                {this.state.invalidQ1 === true && <p class="invalid">Incorrect answer</p>}
+                <p>Security question 2: What was your first car?</p>
+                <TextEntry setValue={this.setQuestion2}/>
+                {this.state.invalidQ2 === true && <p class="invalid">Incorrect answer</p>}
+                <p>Security question 3: What was the first exam you failed?</p>
+                <TextEntry setValue={this.setQuestion3}/>
+                {this.state.invalidQ3 === true && <p class="invalid">Incorrect answer</p>}
+                <br/><br/><br/>
+                <Button submit={this.submit} text="Submit"/>
+                <br/><br/><br/><br/>
                 {/*link back to login page*/}
                 <nav>
-                    <Link to="/">Back to login page</Link>
+                    <Link to="/" class="link">Back to login page</Link>
                 </nav>
             </div>
         );

@@ -14,7 +14,8 @@
             $sql = "INSERT INTO driveshare.availability (CID, date) VALUES (".$row[0].",'".$date."');";
             $conn->exec($sql);
         }
-        echo "<script> location.href='http://localhost:3000/carList'; </script>";
+        echo json_encode("SUCCESS");
+        //echo "<script> location.href='http://localhost:3000/carList'; </script>";
     } catch(PDOException $e) {
         echo $sql . "<br>" . $e->getMessage();
     }  

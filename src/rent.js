@@ -27,14 +27,17 @@ class Rent extends React.Component {
                     <input type="hidden" name="UID" value={sessionStorage.getItem("UID")}/>
                     <input type="hidden" name="price" value={this.props.price}/>
                     {/*checkboxes for the user to select which days they want to rent*/}
-                    <p>Availability:</p> {this.props.availability.map((day) => (
+                    <p><b>Available dates:</b></p> {this.props.availability.map((day) => (
                         <div>
                             {/*Dates are not shown if they are taken*/}
-                            {!this.rentDates.includes(day) && <p><input type="checkbox" name="dates[]" value={day}/> {day}</p>}
+                            {!this.rentDates.includes(day) && <div> <p><input type="checkbox" name="dates[]" value={day} style={{"margin-left":"-47%", "margin-right":"-46%"}}/>{day}</p></div>}
                         </div>
                     ))}
                     {/*User must verify themselves to rent a car (see verification.js)*/}
-                    {this.props.verified ? <input type="submit" value="Rent"/> : <input type="submit" value="Rent" disabled/>}
+                    {/*Users cannot rent their own cars*/}
+                    <br/>
+                    {this.props.CUID == sessionStorage.getItem("UID") ? <p><i>This is your car</i></p> : 
+                    <div>{this.props.verified ? <input type="submit" value="Rent" style={{"width":"5%"}}/> : <input type="submit" value="Verify yourself to rent" disabled style={{"width":"10%"}}/>}</div>}
                 </form>
             </div>
         );

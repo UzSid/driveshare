@@ -8,6 +8,7 @@ import Signup from "./signup";
 import Recovery from "./recovery";
 import Navigation from './navigation';
 import Home from "./home";
+import NotificationList from "./notifications";
 import React, { useState } from 'react';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
       {/*If not logged in, show login, signup, and recovery. Must log in to use other site functions.*/}
       {sessionStorage.getItem("loggedIn") !== "true" && !loggedIn ? (
         <Router>
+          <p class="logoMain"><b>DriveShare</b></p>
           <Routes>            
             <Route path="/" element={<Login onLogin={handleLogin}/>}/>
             <Route path="signup" element={<Signup/>}/>
@@ -39,12 +41,14 @@ function App() {
         <div>
           <Router>
             <Navigation logout={handleLogout}/>
+            <br/><br/>
             <Routes>
               <Route path="/" element={<Home/>}/>
               <Route path="AddCar" element={<AddCar/>}/>
               <Route path="CarList" element={<CarList/>}/>
-              <Route path="Messages" element={<Messages/>}/>
               <Route path="MyListings" element={<MyListings/>}/>
+              <Route path="Messages" element={<Messages/>}/>
+              <Route path="Notifications" element={<NotificationList/>}/>
             </Routes>
           </Router>          
         </div>

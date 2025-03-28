@@ -1,4 +1,7 @@
 import React from "react";
+import Collapsible from "react-collapsible";
+import { FormDirector, TextEntry, NumberEntry, Button } from './UIComponents';
+import { NotificationSubject, NotificationObserver } from './notifications'
 
 //use modified version of carList.js
 class Car {
@@ -69,10 +72,10 @@ class CarBuilder{
             for (var j = 0; j < rentedDateList.length; j++) {
                 if (rentedDateList[j].CID === carList[i].CID) {
                     this.rentedDates.push(rentedDateList[j].date);
-                }
-                //if the user rented them, put them in a separate list for keeping track of what they rent
-                if (rentedDateList[j].UID == sessionStorage.getItem("UID") && !this.rentedList.includes(carList[i])) {
-                    this.rentedList.push(carList[i]);
+                    //if the user rented the car, put them in a separate list for keeping track of what they rented
+                    if (rentedDateList[j].UID == sessionStorage.getItem("UID") && !this.rentedList.includes(carList[i])) {
+                        this.rentedList.push(carList[i]);
+                    }
                 }
             }
             this.listings.push(new Car(carList[i].CID, carList[i].UID, carList[i].owner, carList[i].model, carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates, this.rentedDates));
@@ -95,11 +98,89 @@ class CarBuilder{
 class MyListings extends React.Component {
     constructor() {
         super();
+        this.notificationSubject = new NotificationSubject();
+        this.notificationObserver = new NotificationObserver();
+        this.notificationSubject.setObserver(this.notificationObserver);
         this.list = [];
         this.state = {
             listings: [],
-            rentedCars: []
+            rentedCars: [],
+            mileage: "",
+            location: "",
+            price: "",
+            date: null
         };
+    }
+
+    setMileage = (event) => {
+    const mileage = event.target.value;
+    if (mileage.length <= 11) {
+        this.setState({mileage});
+        }
+    }
+
+    setLocation = (event) => {
+    const location = event.target.value;
+    if (location.length <= 40) {
+        this.setState({location});
+        }
+    }
+
+    setPrice = (event) => {
+        const price = event.target.value;
+        if (price.length <= 11) {
+            this.setState({price});
+        }
+    }
+
+    setDate = (event) => {
+        const date = event.target.value;
+        this.setState({date});
+        console.log(this.state.date);
+    }
+
+    editCar = async(CID, column, value, model, year) => {
+        let response = await fetch("http://localhost/DriveShare/src/editCar.php?CID="+CID+"&column="+column+"&value="+value);
+        let status = await response.json();
+        if (status === "SUCCESS") {
+            this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail", "You have modified the " + column + " of your " + year + " " + model); //notify message receiver
+            window.location.reload(true); //refresh page
+        }
+        else {
+            alert("Error editing car.");
+        }
+    }
+
+    deleteCar = async(CID, model, year) => {
+        let response = await fetch("http://localhost/DriveShare/src/deleteCar.php?CID="+CID);
+        let status = await response.json();
+        console.log(status);
+        if (status === "SUCCESS") {
+            this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail", "You have delisted your " + year + " " + model); //notify message receiver
+            window.location.reload(true); //refresh page
+        }
+        else {
+            alert("Error daleting car.");
+        }
+    }
+
+    newOrDeleteDate = async(CID, date, model, year, newOrDelete) => {
+        let response = null;
+        if (newOrDelete === "DELETE") {
+            response = await fetch("http://localhost/DriveShare/src/deleteDate.php?CID="+CID+"&date="+date);
+        }
+        else if (newOrDelete === "NEW") {
+            response = await fetch("http://localhost/DriveShare/src/newDate.php?CID="+CID+"&date="+date);
+        }
+        let status = await response.json();
+        console.log(status);
+        if (status === "SUCCESS") {
+            this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail", "You have modified the availability of your " + year + " " + model); //notify message receiver
+            window.location.reload(true); //refresh page
+        }
+        else {
+            alert("Error daleting car.");
+        }
     }
 
     render() {
@@ -111,74 +192,87 @@ class MyListings extends React.Component {
         return (
             <div>
                 {/*Cars the user currently has booked*/}
-                <h3>Cars you currently have booked</h3>
+                {this.state.rentedCars.length > 0 && <h3 style={{"margin-left":"1%"}}>Cars you currently have booked</h3>}
                 {this.state.rentedCars.map((car) => (
-                    <div>
-                        <p>Model: {car.model}</p>
-                        <p>Year: {car.year}</p>
-                        <p>Owner: {car.ownerName}</p>
-                        <p>Dates rented:</p> {car.rentedDates.map((day) => (
+                    <Collapsible trigger={<h3 style={{"margin-left":"1%"}}>{car.year + " " + car.model}</h3>}>
+                        <hr/>
+                        <p>Hosted by {car.ownerName}</p>
+                        <p><b>Model:</b> {car.model}</p>
+                        <p><b>Year:</b> {car.year}</p>
+                        <p><b>Dates you have rented this car:</b></p> {car.rentedDates.map((day) => (
                             <p>{day}</p>
                         ))}
                         <br/>
-                    </div>
+                    </Collapsible>
                 ))}
-                {/*Cars the user has listed for rental*/}
-                <h3>Cars you have listed for rental</h3>
+                <br/>
+                {/*Cars the user has listed for rental (if any)*/}
+                {this.state.listings.length > 0 && <h3 style={{"margin-left":"1%"}}>Cars you have listed for rental</h3>}
                 {this.state.listings.map((car) => (
                     <div>
                         {car.UID == sessionStorage.getItem("UID") &&
-                            <div>
-                                <div>
+                            <Collapsible trigger={<h3 style={{"margin-left":"1%"}}>{car.year + " " + car.model}</h3>}>
+                                <hr/>
+                                <div style={{"margin-left":"1%"}}>
                                     {/*If the car is not rented, it can be deleted*/}
-                                    {car.rentedDates.length > 0 ? <p>Model: {car.model} <i>rented</i></p>
+                                    {car.rentedDates.length > 0 ? <p><i>Rented</i></p>
                                     :
-                                    <form action="http://localhost/DriveShare/src/deleteCar.php" method="GET">
-                                        <input type="hidden" name="CID" value={car.CID}/>
-                                        <p>Model: {car.model} <input type="submit" value="Delete"/></p>
-                                    </form>
+                                    <Button submit={() => this.deleteCar(car.CID, car.model, car.year)} text="Delete" style={{"width":"20%"}}/>
                                     }
                                 </div>
                                 {/*car info that can be edited*/}
-                                <p>Year: {car.year}</p>
-                                <form action="http://localhost/DriveShare/src/editCar.php" method="GET">
-                                    <input type="hidden" name="column" value="mileage"/>
-                                    <input type="hidden" name="CID" value={car.CID}/>
-                                    <p>Mileage: {car.mileage} <input type="number" name="value" maxlength="11" required/> <input type="submit" value="Edit"/></p>
-                                </form>
-                                <form action="http://localhost/DriveShare/src/editCar.php" method="GET">
-                                    <input type="hidden" name="column" value="location"/>
-                                    <input type="hidden" name="CID" value={car.CID}/>
-                                    <p>Location: {car.location} <input type="text" name="value" maxlength="64" required/> <input type="submit" value="Edit"/></p>
-                                </form>
-                                <form action="http://localhost/DriveShare/src/editCar.php" method="GET">
-                                    <input type="hidden" name="column" value="price"/>
-                                    <input type="hidden" name="CID" value={car.CID}/>
-                                    <p>Price: {car.price} <input type="number" name="value" maxlength="11" required/> <input type="submit" value="Edit"/></p>
-                                </form>
+                                    <table style={{"margin-left":"1%"}}>
+                                        <tbody>
+                                            <tr>
+                                                <td><p>Mileage: {car.mileage} miles</p></td>
+                                                <td><NumberEntry setValue={this.setMileage} value={this.state.mileage}/></td>
+                                                <td>{this.state.mileage.length === 0 ? (<input type="submit" value="Edit" disabled/>) : (<Button submit={() => this.editCar(car.CID, "mileage", this.state.mileage, car.model, car.year)} text="Edit"/>)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><p>Location: {car.location}</p></td>
+                                                <td><TextEntry setValue={this.setLocation} value={this.state.location}/></td>
+                                                <td>{this.state.location.length === 0 ? (<input type="submit" value="Edit" disabled/>) : (<Button submit={() => this.editCar(car.CID, "location", this.state.location, car.model, car.year)} text="Edit"/>)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><p>Price per day: ${car.price}</p></td>
+                                                <td><NumberEntry setValue={this.setPrice} value={this.state.price}/></td>
+                                                <td>{this.state.price.length === 0 ? (<input type="submit" value="Edit" disabled/>) : (<Button submit={() => this.editCar(car.CID, "price", this.state.price, car.model, car.year)} text="Edit"/>)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 {/*Show availability dates. Dates can be deleted if they are not rented.*/}
                                 <p>Availability:</p> {car.availability.map((day) => (
                                     <div>
-                                        {car.rentedDates.includes(day) ?
-                                        <p>{day} <i>rented</i></p>
-                                        :
-                                        <form action="http://localhost/DriveShare/src/deleteDate.php" method="GET">
-                                            <input type="hidden" name="CID" value={car.CID}/>
-                                            <input type="hidden" name="date" value={day}/>
-                                            <p>{day} <input type="submit" value="Delete"/></p>
-                                        </form>
-                                        }
+                                        <table style={{"margin-left":"0.8%"}}>
+                                            <tbody>
+                                                <tr>
+                                                    <td><p>{day} | </p></td>
+                                                    {car.rentedDates.includes(day) ?
+                                                        <td><i>rented</i></td>
+                                                        :
+                                                        <td><Button submit={() => this.newOrDeleteDate(car.CID, day, car.model, car.year, "DELETE")} text="Delete" style={{"width":"120%", "padding":"5px"}}/></td>
+                                                    }
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        
                                     </div>
                                 ))}
                                 {/*new availability dates can be added*/}
-                                <form action="http://localhost/DriveShare/src/newDate.php" method="GET">
-                                    <input type="hidden" name="CID" value={car.CID}/>
-                                    <label for="availability">Add availability date:</label>
-                                    <input type="date" id="availability" name="date"/>
-                                    <input type="submit" value="Add"/>
-                                </form>
+                                <table style={{"margin-left":"0.8%"}}>
+                                    <tbody>
+                                        <tr>
+                                            <td><p>Add availability date:</p></td>
+                                            <td><input type="date" id="availability" name="date" onChange={this.setDate} style={{"width":"90%"}}/></td>
+                                            <td>{this.state.date === null ? (<input type="submit" value="Add" disabled />) : (<Button submit={() => this.newOrDeleteDate(car.CID, this.state.date, car.model, car.year, "NEW")} text="Add"/>)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                    
+                                    
+                                    
                                 <br/>
-                            </div>}
+                            </Collapsible>}
                     </div>
                 ))}
             </div>

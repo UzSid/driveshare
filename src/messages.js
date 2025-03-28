@@ -1,12 +1,20 @@
 import React from "react";
+import Collapsible from "react-collapsible";
+import { FormDirector, TextEntry, Button } from './UIComponents';
+import { NotificationSubject, NotificationObserver } from './notifications'
 
 class Messages extends React.Component {
     constructor() {
         super();
         this.messagedUsers = [];
+        this.notificationSubject = new NotificationSubject();
+        this.notificationObserver = new NotificationObserver();
+        this.notificationSubject.setObserver(this.notificationObserver);
         this.state = {
             emailValue: "",
-            invalidUser: true //for when the user tries to message a nonexistent user
+            invalidUser: true, //for when the user tries to message a nonexistent user
+            message: "",
+            newMessage: ""
         };
         fetch("http://localhost/DriveShare/src/accountInfo.php")
         .then(response => response.json())
@@ -23,10 +31,10 @@ class Messages extends React.Component {
         //get list of users user talked to
         for (var i = 0; i < this.messages.length; i++) {
             if (!this.messagedUsers.includes(this.messages[i].senderEmail) && sessionStorage.getItem("email") == this.messages[i].receiverEmail) {
-                this.messagedUsers.push(this.messages[i].senderEmail)
+                this.messagedUsers.push(this.messages[i].senderEmail);
             }
             else if (!this.messagedUsers.includes(this.messages[i].receiverEmail) && sessionStorage.getItem("email") == this.messages[i].senderEmail) {
-                this.messagedUsers.push(this.messages[i].receiverEmail)
+                this.messagedUsers.push(this.messages[i].receiverEmail);
             }
         }
     }
@@ -44,44 +52,88 @@ class Messages extends React.Component {
         this.setState({emailValue, invalidUser});
     };
 
+    setMessage = (event) => {
+        const message = event.target.value;
+        if (message.length <= 150) {
+            this.setState({message});
+        }
+    }
+
+    setNewMessage = (event) => {
+        const newMessage = event.target.value;
+        if (newMessage.length <= 200) {
+            this.setState({newMessage});
+        }
+    }
+
+    submit = async(senderEmail, receiverEmail, message) => {
+        let response = await fetch("http://localhost/DriveShare/src/addMessage.php?senderEmail="+senderEmail+"&receiverEmail="+receiverEmail+"&message="+message);
+        let status = await response.json();
+        if (status === "SUCCESS") {
+            this.notificationSubject.setNotification(receiverEmail, "email", "New message from " + senderEmail); //notify message receiver
+            window.location.reload(true); //refresh page
+        }
+        else {
+            alert("Error sending message.");
+        }
+    }
+
     render() {
         return (
             <div>
-                <h3>Your conversations</h3>
+                {/*Only show this heading if the user has any conversations*/}
+                {this.messagedUsers.length > 0 && <h2 style={{"margin-left":"1%"}}>Your conversations</h2>}
                 {this.messagedUsers.map((user) => (
-                    <div>
-                        <p>{user}</p>
+                    <Collapsible trigger={<h3 style={{"margin-left":"1%"}}>{user}</h3>}>
+                        <hr/>
                         {this.messages.map((message) => (
                             <div>
                                 {/*Show messages if the user is either the sender or receiver*/}
                                 {((user == message.senderEmail || user == message.receiverEmail) && (sessionStorage.getItem("email") == message.senderEmail || sessionStorage.getItem("email") == message.receiverEmail)) &&
-                                <div>
-                                    <p>{message.datetime} {message.senderEmail}: {message.message}</p>
-                                </div>
+                                    <div>
+                                        {sessionStorage.getItem("email") == message.receiverEmail ?
+                                            <div class="messagereceiver">
+                                                <p style={{"margin-bottom":"1%"}}>{message.datetime}</p>
+                                                <p><b class="messagereceivermessage">{message.message}</b></p>
+                                                <br/>
+                                            </div>
+                                            :
+                                            <div class="messagesender">
+                                                <p style={{"margin-bottom":"1%"}}>{message.datetime}</p>
+                                                <p><b class="messagesendermessage">{message.message}</b></p>
+                                                <br/>
+                                            </div>}
+                                    </div>
                                 }
                             </div>
                         ))}
-                {/*Form for another message*/}
-                <form action="http://localhost/DriveShare/src/addMessage.php" method="GET">
-                    <input type="hidden" name="senderEmail" value={sessionStorage.getItem("email")}/>
-                    <input type="hidden" name="receiverEmail" value={user}/>
-                    <label for="message">send a new message: </label><br/>
-                    <input type="text" name="message" maxlength="8000" required/><br/><br/>
-                    <input type="submit" value="Send"/>
-                </form>
-                    </div>
+                        {/*Form for another message*/}
+                            <table style={{"width":"99%"}}>
+                                <tbody>
+                                    <tr>
+                                        <td style={{"width":"11%"}}>
+                                            <p>Send a new message:</p>
+                                        </td>
+                                        <td style={{"width":"100%"}}>
+                                            <TextEntry setValue={this.setMessage} value={this.state.message} style={{"width":"99%"}}/>
+                                        </td>
+                                        <td>
+                                            {this.state.message.length === 0 ? (<input type="submit" value="Send" disabled/>) : (<Button submit={() => this.submit(sessionStorage.getItem("email"), user, this.state.message)} text="Send"/>)}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                    </Collapsible>
                 ))}
-                <h3>Start a new conversation</h3>
+                <br/><br/><br/>
+                <h2 style={{"margin-left":"1%"}}>Start a new conversation</h2>
                 {/*Form for sending messages to users not yet message; email address must belong to a registered user*/}
-                <form action="http://localhost/DriveShare/src/addMessage.php" method="GET">
-                    <input type="hidden" name="senderEmail" value={sessionStorage.getItem("email")}/>
-                    <label for="email">receiver's email address: </label><br/>
-                    <input type="text" name="receiverEmail" required  value={this.state.emailValue} onChange={this.handleEmailValue}/><br/><br/>
-                    {(this.state.invalidUser === true && this.state.emailValue.length !== 0) && <p>email address not found</p>}
-                    <label for="message">message: </label><br/>
-                    <input type="text" name="message" maxlength="8000" required/><br/><br/>
-                    {(this.state.invalidUser === true && this.state.emailValue.length !== 0) ? (<input type="submit" value="Send" disabled/>) : (<input type="submit" value="Send"/>)}
-                </form>
+                <p style={{"margin-left":"1%"}}>Receiver's email address:</p>
+                <TextEntry setValue={this.handleEmailValue} style={{"width":"96%", "margin-left":"1%"}}/>
+                {(this.state.invalidUser === true && this.state.emailValue.length !== 0) && <p class="invalid">email address not found</p>}
+                <p style={{"margin-left":"1%"}}>Message:</p>
+                <TextEntry setValue={this.setNewMessage} value={this.state.newMessage} style={{"width":"96%", "margin-left":"1%"}}/><br/><br/>
+                {(this.state.invalidUser === true || this.state.emailValue === sessionStorage.getItem("email") || this.state.emailValue.length === 0 || this.state.newMessage.length === 0) ? (<input type="submit" value="Send" disabled style={{"width":"96.5%", "margin-left":"1%"}}/>) : (<Button submit={() => this.submit(sessionStorage.getItem("email"), this.state.emailValue, this.state.newMessage)} style={{"width":"97.5%", "margin-left":"1%"}} text="Send"/>)}
             </div>
         );
     }

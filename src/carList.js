@@ -1,6 +1,8 @@
 import React from "react";
+import Collapsible from "react-collapsible";
 import Rent from "./rent";
 import Verify from "./verification";
+import { TextEntry } from "./UIComponents";
 
 //Director
 class Director {
@@ -16,8 +18,9 @@ class AbstractBuilder {
 
 //Product
 class Car {
-    constructor(CID, owner, model, year, mileage, location, price, availability) {
+    constructor(CID, UID, owner, model, year, mileage, location, price, availability) {
         this.CID = CID;
+        this.UID = UID;
         this.owner = owner;
         this.model = model;
         this.year = year;
@@ -56,7 +59,7 @@ class CarBuilder extends AbstractBuilder {
                 }
             }
             //Push products to list
-            this.list.push(new Car(carList[i].CID, carList[i].owner, carList[i].model, carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates));
+            this.list.push(new Car(carList[i].CID, carList[i].UID, carList[i].owner, carList[i].model, carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates));
             this.dates = [];
         }
         return this.list;
@@ -87,6 +90,9 @@ class CarList extends React.Component {
             else if (this.state.list[i].location.toLowerCase().includes(searchValue.toLowerCase())) {
                 filteredList.push(this.state.list[i]);
             }
+            else if (this.state.list[i].year.toString().includes(searchValue)) {
+                filteredList.push(this.state.list[i]);
+            }
             else if (this.state.list[i].availability.toString().includes(searchValue)) {
                 filteredList.push(this.state.list[i]);
             }
@@ -106,37 +112,33 @@ class CarList extends React.Component {
         return (
             <div>
                 <Verify verify={this.handleVerification}/> {/*Verification component; must verify before renting*/}
-                <h3>Search for a car:</h3>
-                <input type="text" value={this.state.searchValue} onChange={this.handleSearch}/> {/*Search bar*/}
-                <p>Search by name, location, or availability</p><br/>
+                <h3 style={{"margin-left":"1%"}}>Search for a car:</h3>
+                <TextEntry setValue={this.handleSearch} style={{"margin-left":"1%"}}/> {/*Search bar*/}
+                <p style={{"margin-left":"1%"}}>Search by model, location, or availability</p><br/>
                 {this.state.searchValue.length > 0 ? //if there is something in the search bar, show filtered list. Otherwise, show the whole thing.
                     <div>
                         {this.state.filteredList.map((car) => (
-                            <div>
-                                <p>Model: {car.model}</p>
-                                <p>Owner: {car.owner}</p>
-                                <p>Year: {car.year}</p>
-                                <p>Mileage: {car.mileage}</p>
-                                <p>Location: {car.location}</p>
-                                <p>Price per day: {car.price}</p>
+                            <Collapsible trigger={<h3 style={{"margin-left":"1%"}}>{car.year + " " + car.model}</h3>}>
+                                <hr/>
+                                <p>Hosted by {car.owner}</p>
+                                <p><b>Mileage:</b> {car.mileage} miles</p>
+                                <p><b>Location:</b> {car.location}</p>
+                                <p><b>Price per day:</b> ${car.price}</p>
                                 <Rent availability={car.availability} CID={car.CID} verified={this.state.verified} price={car.price}/>
-                                <br/><br/>
-                            </div>
+                            </Collapsible>
                         ))}
                     </div>
                     :
                     <div>
                         {this.state.list.map((car) => (
-                            <div>
-                                <p>Model: {car.model}</p>
-                                <p>Owner: {car.owner}</p>
-                                <p>Year: {car.year}</p>
-                                <p>Mileage: {car.mileage}</p>
-                                <p>Location: {car.location}</p>
-                                <p>Price per day: {car.price}</p>
-                                <Rent availability={car.availability} CID={car.CID} verified={this.state.verified} price={car.price}/>
-                                <br/><br/>
-                            </div>
+                            <Collapsible trigger={<h3 style={{"margin-left":"1%"}}>{car.year + " " + car.model}</h3>}>
+                                <hr/>
+                                <p>Hosted by {car.owner}</p>
+                                <p><b>Mileage:</b> {car.mileage} miles</p>
+                                <p><b>Location:</b> {car.location}</p>
+                                <p><b>Price per day:</b> ${car.price}</p>
+                                <Rent availability={car.availability} CID={car.CID} CUID={car.UID} verified={this.state.verified} price={car.price}/>
+                            </Collapsible>
                         ))}
                     </div>
                 }
