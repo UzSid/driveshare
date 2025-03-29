@@ -29,7 +29,7 @@ class VerificationProxy extends React.Component {
     }
 }
 
-class Verify extends React.Component {
+export default class Verify extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -67,7 +67,7 @@ class Verify extends React.Component {
         return (
             <div>
                 <form>
-                    <h3>Enter your password to verify yourself before renting a car:</h3>
+                    <h2>Enter your password to verify yourself before renting a car:</h2>
                     <table>
                         <tbody>
                             <tr>
@@ -88,5 +88,3 @@ class Verify extends React.Component {
         );
     }
 }
-
-export default Verify;

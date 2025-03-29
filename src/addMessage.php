@@ -6,7 +6,6 @@
             VALUES ('".$_GET['senderEmail']."', '".$_GET['receiverEmail']."', '".str_replace("'", "''", $_GET['message'])."');"; //str_replace adds an extra apostrophe so they can be used
         $conn->exec($sql);
         echo json_encode("SUCCESS");
-        //echo "<script> location.href='http://localhost:3000/Messages'; </script>";
     } catch(PDOException $e) {
         echo $sql . "<br>" . $e->getMessage();
     }  

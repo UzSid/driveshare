@@ -2,7 +2,7 @@ import React from "react";
 import Collapsible from "react-collapsible";
 import Rent from "./rent";
 import Verify from "./verification";
-import { TextEntry } from "./UIComponents";
+import { FormDirector, TextEntry } from "./UIComponents";
 
 //Director
 class Director {
@@ -40,6 +40,7 @@ class CarBuilder extends AbstractBuilder {
     }
 
     buildCars() {
+        //get data on cars and availability
         fetch("http://localhost/DriveShare/src/carList.php")
         .then(response => response.json())
         .then(json => {
@@ -52,21 +53,28 @@ class CarBuilder extends AbstractBuilder {
         });
         let carList = JSON.parse(sessionStorage.getItem("cars"));
         let availability = JSON.parse(sessionStorage.getItem("availability"));
-        for (var i = 0; i < carList.length; i++) {
-            for (var j = 0; j < availability.length; j++) {
-                if (availability[j].CID === carList[i].CID) {
-                    this.dates.push(availability[j].date);
-                }
+        try {
+            for (var i = 0; i < carList.length; i++) {
+                for (var j = 0; j < availability.length; j++) {
+                    if (availability[j].CID === carList[i].CID) {
+                        this.dates.push(availability[j].date);
+                    }
             }
             //Push products to list
-            this.list.push(new Car(carList[i].CID, carList[i].UID, carList[i].owner, carList[i].model, carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates));
+            this.list.push(new Car(carList[i].CID, carList[i].UID, carList[i].owner, carList[i].model,
+                carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates));
             this.dates = [];
+            }
         }
+        catch {
+            window.location.reload(true); //refresh page
+        }
+
         return this.list;
     }
 }
 
-class CarList extends React.Component {
+export default class CarList extends React.Component {
     constructor() {
         super();
         this.list = [];
@@ -79,6 +87,7 @@ class CarList extends React.Component {
         };
     }
 
+    //for handling when the user types in the search bar
     handleSearch = (event) => {
         const searchValue = event.target.value;
         const filteredList = [];
@@ -111,8 +120,8 @@ class CarList extends React.Component {
         this.state.list = director.buildCars(carBuilder);
         return (
             <div>
-                <Verify verify={this.handleVerification}/> {/*Verification component; must verify before renting*/}
-                <h3 style={{"margin-left":"1%"}}>Search for a car:</h3>
+                <Verify verify={this.handleVerification}/> {/*Verification component; must verify before renting*/}<br/>
+                <h2 style={{"margin-left":"1%"}}>Search for a car:</h2>
                 <TextEntry setValue={this.handleSearch} style={{"margin-left":"1%"}}/> {/*Search bar*/}
                 <p style={{"margin-left":"1%"}}>Search by model, location, or availability</p><br/>
                 {this.state.searchValue.length > 0 ? //if there is something in the search bar, show filtered list. Otherwise, show the whole thing.
@@ -124,7 +133,9 @@ class CarList extends React.Component {
                                 <p><b>Mileage:</b> {car.mileage} miles</p>
                                 <p><b>Location:</b> {car.location}</p>
                                 <p><b>Price per day:</b> ${car.price}</p>
-                                <Rent availability={car.availability} CID={car.CID} verified={this.state.verified} price={car.price}/>
+                                {/* Rental component */}
+                                <Rent availability={car.availability} CID={car.CID} CUID={car.UID}verified={this.state.verified}
+                                    price={car.price} year={car.year} model={car.model} owner={car.owner}/>
                             </Collapsible>
                         ))}
                     </div>
@@ -137,7 +148,9 @@ class CarList extends React.Component {
                                 <p><b>Mileage:</b> {car.mileage} miles</p>
                                 <p><b>Location:</b> {car.location}</p>
                                 <p><b>Price per day:</b> ${car.price}</p>
-                                <Rent availability={car.availability} CID={car.CID} CUID={car.UID} verified={this.state.verified} price={car.price}/>
+                                {/* Rental component */}
+                                <Rent availability={car.availability} CID={car.CID} CUID={car.UID} verified={this.state.verified}
+                                    price={car.price} year={car.year} model={car.model} owner={car.owner}/>
                             </Collapsible>
                         ))}
                     </div>
@@ -146,5 +159,3 @@ class CarList extends React.Component {
         );
     }
 }
-
-export default CarList;

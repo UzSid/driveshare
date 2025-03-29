@@ -1,8 +1,8 @@
 import React from "react";
-import { FormDirector, TextEntry, Button, NumberEntry } from './UIComponents';
+import { FormDirector, TextEntry, Button, NumberEntry, Calendar } from './UIComponents';
 import { NotificationSubject, NotificationObserver } from './notifications'
 
-class AddCar extends React.Component {
+export default class AddCar extends React.Component {
   constructor() {
     super();
     this.notificationSubject = new NotificationSubject();
@@ -18,6 +18,7 @@ class AddCar extends React.Component {
     };
   }
 
+  //for handling form inputs
   setModel = (event) => {
     const model = event.target.value;
     if (model.length <= 40) {
@@ -71,11 +72,17 @@ class AddCar extends React.Component {
     }
   }
 
+  //when form is submitted
   submit = async(UID, name, model, year, mileage, location, price, dates) => {
-    let response = await fetch("http://localhost/DriveShare/src/newCarAndAvail.php?UID="+UID+"&name="+name+"&model="+model+"&year="+year+"&mileage="+mileage+"&location="+location+"&price="+price+"&dates="+dates);
+    //run SQL via PHP
+    let response = await fetch("http://localhost/DriveShare/src/newCarAndAvail.php?UID="+UID
+      +"&name="+name+"&model="+model+"&year="+year+"&mileage="
+      +mileage+"&location="+location+"&price="+price+"&dates="+dates);
     let status = await response.json();
+    //if successful, notify user and refresh page
     if (status === "SUCCESS") {
-        this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail", "You have listed a car for rental: " + this.state.year + " " + this.state.model); //notify message receiver
+        this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail", "You have listed a car for rental: "
+          + this.state.year + " " + this.state.model); //notify user
         window.location.reload(true); //refresh page
     }
     else {
@@ -100,21 +107,30 @@ class AddCar extends React.Component {
         <NumberEntry setValue={this.setPrice} value={this.state.price}/>
         <p>Availability:</p>
         {/*A calendar for choosing dates*/}
-        <input type="date" id="availability" name="availability" onChange={e => this.setDates(e.target.value)}/>
+        <Calendar onChange={e => this.setDates(e.target.value)}/>
         {this.state.dates.map((date) => (
-            <p>{date} <button type="button" class="deletebutton" onClick={() => this.delete(date)}>Delete</button></p>
+          <table>
+            <tbody>
+              <tr>
+                <td><p>{date}</p></td>
+                <td><Button class="deletebutton" submit={() => this.delete(date)} text="Delete"/></td>
+              </tr>
+            </tbody>
+          </table>
         ))}
-        <br/><br/><br/>  
+        <br/><br/><br/>
+        {/* If any field is empty, show disabled button; otherwise show enabled button */}
         {((this.state.model.length === 0) ||
           (this.state.year.length === 0) ||
           (this.state.mileage.length === 0) ||
           (this.state.location.length === 0) ||
           (this.state.price.length === 0) ||
           (this.state.dates.length === 0))
-          ? (<input type="submit" disabled/>):(<Button submit={() => this.submit(sessionStorage.getItem("UID"), sessionStorage.getItem("name"), this.state.model, this.state.year, this.state.mileage, this.state.location, this.state.price, JSON.stringify(this.state.dates))} text="Submit"/>)}        
+          ? (<Button disabled={true} text="Submit"/>):(<Button submit={
+            () => this.submit(sessionStorage.getItem("UID"), sessionStorage.getItem("name"), this.state.model,
+            this.state.year, this.state.mileage, this.state.location, this.state.price, JSON.stringify(this.state.dates))}
+            text="Submit"/>)}        
       </div>
     );
   }
 }
-
-export default AddCar;

@@ -76,7 +76,7 @@ class Q3Handler extends Handler {
     }
 }
 
-class Recovery extends React.Component {
+export default class Recovery extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -183,5 +183,3 @@ class Recovery extends React.Component {
         );
     }
 }
-
-export default Recovery;

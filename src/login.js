@@ -35,6 +35,7 @@ class Login extends React.Component {
         //Get account info from database
         let response = await fetch("http://localhost/DriveShare/src/accountInfo.php");
         let accountInfo = await response.json();
+        sessionStorage.setItem("accountInfo", accountInfo);
         try {
             for (var i = 0; i < accountInfo.length; i++) {
                 //Find email and password match

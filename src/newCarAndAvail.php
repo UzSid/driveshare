@@ -3,7 +3,8 @@
 	try {
 		$conn = new PDO('mysql:host=localhost;dbname=driveshare;', 'root', '');  //connect to database
         $sql = "INSERT INTO driveshare.cars (UID, owner, model, year, mileage, location, price) /*Insert new car; str_replace adds an extra apostrophe so they can be used*/
-            VALUES ('".$_GET['UID']."', '".str_replace("'", "''", $_GET['name'])."', '".str_replace("'", "''", $_GET['model'])."', '".$_GET['year']."', '".$_GET['mileage']."', '".str_replace("'", "''", $_GET['location'])."', '".$_GET['price']."');";
+            VALUES ('".$_GET['UID']."', '".str_replace("'", "''", $_GET['name'])."', '".str_replace("'", "''", $_GET['model']).
+            "', '".$_GET['year']."', '".$_GET['mileage']."', '".str_replace("'", "''", $_GET['location'])."', '".$_GET['price']."');";
         $conn->exec($sql);
         //Get the new car's ID
         $stmt = $conn->query("SELECT MAX(CID) AS maxID FROM driveshare.cars");
@@ -15,7 +16,6 @@
             $conn->exec($sql);
         }
         echo json_encode("SUCCESS");
-        //echo "<script> location.href='http://localhost:3000/carList'; </script>";
     } catch(PDOException $e) {
         echo $sql . "<br>" . $e->getMessage();
     }  

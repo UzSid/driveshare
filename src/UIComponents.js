@@ -1,5 +1,7 @@
 import React from "react";
 
+//the class pages are the mediators
+
 //director
 export const FormDirector = {
     setEmail: function() {},
@@ -56,6 +58,34 @@ export class PasswordEntry extends React.Component {
 }
 
 //concrete colleague
+export class Checkbox extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+    render() {
+        return (
+            <div>
+                <input type="checkbox" onChange={this.props.onChange} style={this.props.style}/>
+            </div>
+        )
+    }
+}
+
+//concrete colleague
+export class Calendar extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+    render() {
+        return (
+            <div>
+                <input type="date" onChange={this.props.onChange} style={this.props.style}/>
+            </div>
+        )
+    }
+}
+
+//concrete colleague
 export class Button extends React.Component {
     constructor(props) {
         super(props);
@@ -63,7 +93,7 @@ export class Button extends React.Component {
     render() {
         return (
             <div>
-                <button type="button" onClick={() => this.props.submit()} style={this.props.style}>{this.props.text}</button>
+                <button type="button" onClick={() => this.props.submit()} style={this.props.style} disabled={this.props.disabled}>{this.props.text}</button>
             </div>
         )
     }

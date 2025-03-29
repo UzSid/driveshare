@@ -1,11 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FormDirector, TextEntry, NumberEntry, PasswordEntry } from './UIComponents';
+import { FormDirector, TextEntry, NumberEntry, PasswordEntry, Button } from './UIComponents';
+import { NotificationSubject, NotificationObserver } from './notifications'
 
-class Signup extends React.Component{
+export default class Signup extends React.Component{
 
     constructor(props) {
         super(props)
+        this.notificationSubject = new NotificationSubject();
+        this.notificationObserver = new NotificationObserver();
+        this.notificationSubject.setObserver(this.notificationObserver);
         this.state = {
             //variables to hold user inputs
             invalidEmail: false,
@@ -113,50 +117,61 @@ class Signup extends React.Component{
         }
     }
 
+    //for submitting signup
+    submit = async(name, email, password, balance, secq1, secq2, secq3) => {
+        //run SQL via PHP
+        let response = await fetch("http://localhost/DriveShare/src/signup.php?name="+name+"&email="+email+
+            "&password="+password+"&balance="+balance+"&secq1="+secq1+"&secq2="+secq2+"&secq3="+secq3);
+        let status = await response.json();
+        console.log(status);
+        //if successful, notify user and refresh page
+        if (status === "SUCCESS") {
+            this.notificationSubject.setNotification(email, "email", "Congratulations, " + name +
+                "! You have successfully signed up for DriveShare!"); //notify user
+            window.location.reload(true); //refresh page
+        }
+        else {
+            alert("Error signing up.");
+        }
+    }
+
     render() {
         return (
             <div class="loginpages">
                 <h1>Sign Up</h1>
-                <form action="http://localhost/DriveShare/src/signup.php" method="GET">
-                    <input type="hidden" name="name" value={this.state.name}/>
-                    <input type="hidden" name="email" value={this.state.email}/>
-                    <input type="hidden" name="password" value={this.state.password1}/>
-                    <input type="hidden" name="balance" value={this.state.balance}/>
-                    <input type="hidden" name="secq1" value={this.state.secq1}/>
-                    <input type="hidden" name="secq2" value={this.state.secq2}/>
-                    <input type="hidden" name="secq3" value={this.state.secq3}/>
-                    {/*Users must enter their information and will be told if it is invalid*/}
-                    <p>Full name</p>
-                    <TextEntry setValue={this.setName} value={this.state.name}/>
-                    <p>Email address</p>
-                    <TextEntry setValue={this.setEmail} value={this.state.email}/>
-                    {this.state.invalidEmail === true && <p>email address is already in use</p>}
-                    <p>Password</p>
-                    <PasswordEntry setPassword={this.setPassword1} value={this.state.password1}/>
-                    <p>Confirm password</p>
-                    <PasswordEntry setPassword={this.setPassword2} value={this.state.password2}/>
-                    {this.state.invalidPassword === true && <p class="invalid">Passwords do not match</p>}
-                    <p>Account balance</p>
-                    <NumberEntry setValue={this.setBalance} value={this.state.balance}/>
-                    <p>Security question 1: What city were you born in?</p>
-                    <TextEntry setValue={this.setSecq1} value={this.state.secq1}/>
-                    <p>Security question 2: What was your first car?</p>
-                    <TextEntry setValue={this.setSecq2} value={this.state.setSecq2}/>
-                    <p>Security question 3: What was the first exam you failed?</p>
-                    <TextEntry setValue={this.setSecq3} value={this.state.secq3}/>
-                    <br/><br/><br/>
-                    {/*Submit button is disabled unless user's inputs are valid*/}
-                    {((this.state.invalidEmail === true || this.state.invalidPassword === true) ||
-                        (this.state.invalidEmail === true) ||
-                        (this.state.email.length === 0) ||
-                        (this.state.password1.length === 0) ||
-                        (this.state.name.length === 0) ||
-                        (this.state.balance.length === 0) ||
-                        (this.state.secq1.length === 0) ||
-                        (this.state.secq2.length === 0) ||
-                        (this.state.secq3.length === 0))
-                        ? (<input type="submit" disabled/>):(<input type="submit"/>)}                    
-                </form>
+                {/*Users must enter their information and will be told if it is invalid*/}
+                <p>Full name</p>
+                <TextEntry setValue={this.setName} value={this.state.name}/>
+                <p>Email address</p>
+                <TextEntry setValue={this.setEmail} value={this.state.email}/>
+                {this.state.invalidEmail === true && <p>email address is already in use</p>}
+                <p>Password</p>
+                <PasswordEntry setPassword={this.setPassword1} value={this.state.password1}/>
+                <p>Confirm password</p>
+                <PasswordEntry setPassword={this.setPassword2} value={this.state.password2}/>
+                {this.state.invalidPassword === true && <p class="invalid">Passwords do not match</p>}
+                <p>Account balance</p>
+                <NumberEntry setValue={this.setBalance} value={this.state.balance}/>
+                <p>Security question 1: What city were you born in?</p>
+                <TextEntry setValue={this.setSecq1} value={this.state.secq1}/>
+                <p>Security question 2: What was your first car?</p>
+                <TextEntry setValue={this.setSecq2} value={this.state.setSecq2}/>
+                <p>Security question 3: What was the first exam you failed?</p>
+                <TextEntry setValue={this.setSecq3} value={this.state.secq3}/>
+                <br/><br/><br/>
+                {/*Submit button is disabled unless user's inputs are valid*/}
+                {((this.state.invalidEmail === true || this.state.invalidPassword === true) ||
+                    (this.state.invalidEmail === true) ||
+                    (this.state.email.length === 0) ||
+                    (this.state.password1.length === 0) ||
+                    (this.state.name.length === 0) ||
+                    (this.state.balance.length === 0) ||
+                    (this.state.secq1.length === 0) ||
+                    (this.state.secq2.length === 0) ||
+                    (this.state.secq3.length === 0))
+                    ? (<Button disabled={true} text="Submit"/>):(<Button submit={
+                        () => this.submit(this.state.name, this.state.email, this.state.password1, this.state.balance,
+                        this.state.secq1, this.state.secq2, this.state.secq3)} text="Submit"/>)}                    
                 <br/><br/><br/>
                 {/*link back to login page*/}
                 <nav>
@@ -166,5 +181,3 @@ class Signup extends React.Component{
         )
     }
 }
-
-export default Signup;

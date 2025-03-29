@@ -1,6 +1,6 @@
 import React from "react";
 import Collapsible from "react-collapsible";
-import { FormDirector, TextEntry, NumberEntry, Button } from './UIComponents';
+import { FormDirector, TextEntry, NumberEntry, Button, Calendar } from './UIComponents';
 import { NotificationSubject, NotificationObserver } from './notifications'
 
 //use modified version of carList.js
@@ -61,41 +61,47 @@ class CarBuilder{
         let availability = JSON.parse(sessionStorage.getItem("availability"));
         let rentedDateList = JSON.parse(sessionStorage.getItem("rentedDateList"));
         //for each car:
-        for (var i = 0; i < carList.length; i++) {
-            //get their availability
-            for (var j = 0; j < availability.length; j++) {
-                if (availability[j].CID === carList[i].CID) {
-                    this.dates.push(availability[j].date);
-                }
-            }
-            //get the days they are rented
-            for (var j = 0; j < rentedDateList.length; j++) {
-                if (rentedDateList[j].CID === carList[i].CID) {
-                    this.rentedDates.push(rentedDateList[j].date);
-                    //if the user rented the car, put them in a separate list for keeping track of what they rented
-                    if (rentedDateList[j].UID == sessionStorage.getItem("UID") && !this.rentedList.includes(carList[i])) {
-                        this.rentedList.push(carList[i]);
+        try {
+            for (var i = 0; i < carList.length; i++) {
+                //get their availability
+                for (var j = 0; j < availability.length; j++) {
+                    if (availability[j].CID === carList[i].CID) {
+                        this.dates.push(availability[j].date);
                     }
                 }
-            }
-            this.listings.push(new Car(carList[i].CID, carList[i].UID, carList[i].owner, carList[i].model, carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates, this.rentedDates));
-            this.dates = [];
-            this.rentedDates = [];
-        }
-        //get the rented dates of cars the user rented
-        for (var i = 0; i < this.rentedList.length; i++) {
-            for (var j = 0; j < rentedDateList.length; j++) {
-                if (rentedDateList[j].CID === this.rentedList[i].CID) {
-                    this.rentedDates.push(rentedDateList[j].date);
+                //get the days they are rented
+                for (var j = 0; j < rentedDateList.length; j++) {
+                    if (rentedDateList[j].CID === carList[i].CID) {
+                        this.rentedDates.push(rentedDateList[j].date);
+                        //if the user rented the car, put them in a separate list for keeping track of what they rented
+                        if (rentedDateList[j].UID == sessionStorage.getItem("UID") && !this.rentedList.includes(carList[i])) {
+                            this.rentedList.push(carList[i]);
+                        }
+                    }
                 }
+                this.listings.push(new Car(carList[i].CID, carList[i].UID, carList[i].owner, carList[i].model,
+                    carList[i].year, carList[i].mileage, carList[i].location, carList[i].price, this.dates, this.rentedDates));
+                this.dates = [];
+                this.rentedDates = [];
             }
-            this.rentedCars.push(new RentedCar(carList[i].CID, carList[i].owner, carList[i].model, carList[i].year, this.rentedDates));
-            this.rentedDates = [];
+            //get the rented dates of cars the user rented
+            for (var i = 0; i < this.rentedList.length; i++) {
+                for (var j = 0; j < rentedDateList.length; j++) {
+                    if (rentedDateList[j].CID === this.rentedList[i].CID) {
+                        this.rentedDates.push(rentedDateList[j].date);
+                    }
+                }
+                this.rentedCars.push(new RentedCar(carList[i].CID, carList[i].owner, carList[i].model, carList[i].year, this.rentedDates));
+                this.rentedDates = [];
+            }
+        }
+        catch {
+            window.location.reload(true); //refresh page
         }
     }
 }
 
-class MyListings extends React.Component {
+export default class MyListings extends React.Component {
     constructor() {
         super();
         this.notificationSubject = new NotificationSubject();
@@ -112,6 +118,7 @@ class MyListings extends React.Component {
         };
     }
 
+    //for handling form inputs
     setMileage = (event) => {
     const mileage = event.target.value;
     if (mileage.length <= 11) {
@@ -139,11 +146,15 @@ class MyListings extends React.Component {
         console.log(this.state.date);
     }
 
+    //for editing car attributes
     editCar = async(CID, column, value, model, year) => {
+        //run SQL via PHP
         let response = await fetch("http://localhost/DriveShare/src/editCar.php?CID="+CID+"&column="+column+"&value="+value);
         let status = await response.json();
+        //if successful, notify user and refresh page
         if (status === "SUCCESS") {
-            this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail", "You have modified the " + column + " of your " + year + " " + model); //notify message receiver
+            this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail",
+                "You have modified the " + column + " of your " + year + " " + model); //notify user
             window.location.reload(true); //refresh page
         }
         else {
@@ -151,21 +162,25 @@ class MyListings extends React.Component {
         }
     }
 
+    //for delisting cars
     deleteCar = async(CID, model, year) => {
+        //run SQL via PHP
         let response = await fetch("http://localhost/DriveShare/src/deleteCar.php?CID="+CID);
         let status = await response.json();
-        console.log(status);
+        //if successful, notify user and refresh page
         if (status === "SUCCESS") {
-            this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail", "You have delisted your " + year + " " + model); //notify message receiver
+            this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail", "You have delisted your " + year + " " + model); //notify user
             window.location.reload(true); //refresh page
         }
         else {
-            alert("Error daleting car.");
+            alert("Error deleting car.");
         }
     }
 
+    //for editing car availability dates
     newOrDeleteDate = async(CID, date, model, year, newOrDelete) => {
         let response = null;
+        //run SQL via PHP depending on if the user wants to add or delete a date
         if (newOrDelete === "DELETE") {
             response = await fetch("http://localhost/DriveShare/src/deleteDate.php?CID="+CID+"&date="+date);
         }
@@ -173,9 +188,10 @@ class MyListings extends React.Component {
             response = await fetch("http://localhost/DriveShare/src/newDate.php?CID="+CID+"&date="+date);
         }
         let status = await response.json();
-        console.log(status);
+        //if successful, notify user and refresh page
         if (status === "SUCCESS") {
-            this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail", "You have modified the availability of your " + year + " " + model); //notify message receiver
+            this.notificationSubject.setNotification(sessionStorage.getItem("UID"), "notEmail",
+                "You have modified the availability of your " + year + " " + model); //notify message receiver
             window.location.reload(true); //refresh page
         }
         else {
@@ -192,7 +208,7 @@ class MyListings extends React.Component {
         return (
             <div>
                 {/*Cars the user currently has booked*/}
-                {this.state.rentedCars.length > 0 && <h3 style={{"margin-left":"1%"}}>Cars you currently have booked</h3>}
+                {this.state.rentedCars.length > 0 && <h2 style={{"margin-left":"1%"}}>Cars you currently have booked</h2>}
                 {this.state.rentedCars.map((car) => (
                     <Collapsible trigger={<h3 style={{"margin-left":"1%"}}>{car.year + " " + car.model}</h3>}>
                         <hr/>
@@ -207,7 +223,7 @@ class MyListings extends React.Component {
                 ))}
                 <br/>
                 {/*Cars the user has listed for rental (if any)*/}
-                {this.state.listings.length > 0 && <h3 style={{"margin-left":"1%"}}>Cars you have listed for rental</h3>}
+                {this.state.listings.length > 0 && <h2 style={{"margin-left":"1%"}}>Cars you have listed for rental</h2>}
                 {this.state.listings.map((car) => (
                     <div>
                         {car.UID == sessionStorage.getItem("UID") &&
@@ -226,17 +242,20 @@ class MyListings extends React.Component {
                                             <tr>
                                                 <td><p>Mileage: {car.mileage} miles</p></td>
                                                 <td><NumberEntry setValue={this.setMileage} value={this.state.mileage}/></td>
-                                                <td>{this.state.mileage.length === 0 ? (<input type="submit" value="Edit" disabled/>) : (<Button submit={() => this.editCar(car.CID, "mileage", this.state.mileage, car.model, car.year)} text="Edit"/>)}</td>
+                                                <td>{this.state.mileage.length === 0 ? (<Button disabled={true} text="Edit"/>) : (<Button submit={
+                                                    () => this.editCar(car.CID, "mileage", this.state.mileage, car.model, car.year)} text="Edit"/>)}</td>
                                             </tr>
                                             <tr>
                                                 <td><p>Location: {car.location}</p></td>
                                                 <td><TextEntry setValue={this.setLocation} value={this.state.location}/></td>
-                                                <td>{this.state.location.length === 0 ? (<input type="submit" value="Edit" disabled/>) : (<Button submit={() => this.editCar(car.CID, "location", this.state.location, car.model, car.year)} text="Edit"/>)}</td>
+                                                <td>{this.state.location.length === 0 ? (<Button disabled={true} text="Edit"/>) : (<Button submit={
+                                                    () => this.editCar(car.CID, "location", this.state.location, car.model, car.year)} text="Edit"/>)}</td>
                                             </tr>
                                             <tr>
                                                 <td><p>Price per day: ${car.price}</p></td>
                                                 <td><NumberEntry setValue={this.setPrice} value={this.state.price}/></td>
-                                                <td>{this.state.price.length === 0 ? (<input type="submit" value="Edit" disabled/>) : (<Button submit={() => this.editCar(car.CID, "price", this.state.price, car.model, car.year)} text="Edit"/>)}</td>
+                                                <td>{this.state.price.length === 0 ? (<Button disabled={true} text="Edit"/>) : (<Button submit={
+                                                    () => this.editCar(car.CID, "price", this.state.price, car.model, car.year)} text="Edit"/>)}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -250,7 +269,8 @@ class MyListings extends React.Component {
                                                     {car.rentedDates.includes(day) ?
                                                         <td><i>rented</i></td>
                                                         :
-                                                        <td><Button submit={() => this.newOrDeleteDate(car.CID, day, car.model, car.year, "DELETE")} text="Delete" style={{"width":"120%", "padding":"5px"}}/></td>
+                                                        <td><Button submit={() => this.newOrDeleteDate(car.CID, day, car.model, car.year, "DELETE")}
+                                                            text="Delete" style={{"width":"120%", "padding":"5px"}}/></td>
                                                     }
                                                 </tr>
                                             </tbody>
@@ -263,14 +283,12 @@ class MyListings extends React.Component {
                                     <tbody>
                                         <tr>
                                             <td><p>Add availability date:</p></td>
-                                            <td><input type="date" id="availability" name="date" onChange={this.setDate} style={{"width":"90%"}}/></td>
-                                            <td>{this.state.date === null ? (<input type="submit" value="Add" disabled />) : (<Button submit={() => this.newOrDeleteDate(car.CID, this.state.date, car.model, car.year, "NEW")} text="Add"/>)}</td>
+                                            <td><Calendar onChange={this.setDate} style={{"width":"90%"}}/></td>
+                                            <td>{this.state.date === null ? (<Button disabled={true} text="Add"/>) : (<Button submit={
+                                                () => this.newOrDeleteDate(car.CID, this.state.date, car.model, car.year, "NEW")} text="Add"/>)}</td>
                                         </tr>
                                     </tbody>
                                 </table>
-                                    
-                                    
-                                    
                                 <br/>
                             </Collapsible>}
                     </div>
@@ -279,5 +297,3 @@ class MyListings extends React.Component {
         );
     }
 }
-
-export default MyListings;

@@ -3,7 +3,7 @@ import Collapsible from "react-collapsible";
 import { FormDirector, TextEntry, Button } from './UIComponents';
 import { NotificationSubject, NotificationObserver } from './notifications'
 
-class Messages extends React.Component {
+export default class Messages extends React.Component {
     constructor() {
         super();
         this.messagedUsers = [];
@@ -16,26 +16,31 @@ class Messages extends React.Component {
             message: "",
             newMessage: ""
         };
-        fetch("http://localhost/DriveShare/src/accountInfo.php")
-        .then(response => response.json())
-        .then(json => {
-            sessionStorage.setItem("accountInfo", JSON.stringify(json));				
-        });
-        this.allUsers = JSON.parse(sessionStorage.getItem("accountInfo")); //get user info
-        fetch("http://localhost/DriveShare/src/getMessages.php")
-        .then(response => response.json())
-        .then(json => {
-            sessionStorage.setItem("messages", JSON.stringify(json));			
-        });
-        this.messages = JSON.parse(sessionStorage.getItem("messages")); //get existing messages
-        //get list of users user talked to
-        for (var i = 0; i < this.messages.length; i++) {
-            if (!this.messagedUsers.includes(this.messages[i].senderEmail) && sessionStorage.getItem("email") == this.messages[i].receiverEmail) {
-                this.messagedUsers.push(this.messages[i].senderEmail);
-            }
-            else if (!this.messagedUsers.includes(this.messages[i].receiverEmail) && sessionStorage.getItem("email") == this.messages[i].senderEmail) {
-                this.messagedUsers.push(this.messages[i].receiverEmail);
-            }
+        try {
+            fetch("http://localhost/DriveShare/src/accountInfo.php")
+            .then(response => response.json())
+            .then(json => {
+                sessionStorage.setItem("accountInfo", JSON.stringify(json));				
+            });
+            this.allUsers = JSON.parse(sessionStorage.getItem("accountInfo")); //get user info
+            fetch("http://localhost/DriveShare/src/getMessages.php")
+            .then(response => response.json())
+            .then(json => {
+                sessionStorage.setItem("messages", JSON.stringify(json));			
+            });
+            this.messages = JSON.parse(sessionStorage.getItem("messages")); //get existing messages
+            //get list of users user talked to
+            for (var i = 0; i < this.messages.length; i++) {
+                if (!this.messagedUsers.includes(this.messages[i].senderEmail) && sessionStorage.getItem("email") == this.messages[i].receiverEmail) {
+                    this.messagedUsers.push(this.messages[i].senderEmail);
+                }
+                else if (!this.messagedUsers.includes(this.messages[i].receiverEmail) && sessionStorage.getItem("email") == this.messages[i].senderEmail) {
+                    this.messagedUsers.push(this.messages[i].receiverEmail);
+                }
+            }            
+        }
+        catch {
+            window.location.reload(true); //refresh page
         }
     }
 
@@ -66,9 +71,12 @@ class Messages extends React.Component {
         }
     }
 
+    //when form is submitted
     submit = async(senderEmail, receiverEmail, message) => {
+        //run SQL via PHP
         let response = await fetch("http://localhost/DriveShare/src/addMessage.php?senderEmail="+senderEmail+"&receiverEmail="+receiverEmail+"&message="+message);
         let status = await response.json();
+        //if successful, notify user and refresh page
         if (status === "SUCCESS") {
             this.notificationSubject.setNotification(receiverEmail, "email", "New message from " + senderEmail); //notify message receiver
             window.location.reload(true); //refresh page
@@ -89,7 +97,8 @@ class Messages extends React.Component {
                         {this.messages.map((message) => (
                             <div>
                                 {/*Show messages if the user is either the sender or receiver*/}
-                                {((user == message.senderEmail || user == message.receiverEmail) && (sessionStorage.getItem("email") == message.senderEmail || sessionStorage.getItem("email") == message.receiverEmail)) &&
+                                {((user == message.senderEmail || user == message.receiverEmail)
+                                    && (sessionStorage.getItem("email") == message.senderEmail || sessionStorage.getItem("email") == message.receiverEmail)) &&
                                     <div>
                                         {sessionStorage.getItem("email") == message.receiverEmail ?
                                             <div class="messagereceiver">
@@ -118,7 +127,8 @@ class Messages extends React.Component {
                                             <TextEntry setValue={this.setMessage} value={this.state.message} style={{"width":"99%"}}/>
                                         </td>
                                         <td>
-                                            {this.state.message.length === 0 ? (<input type="submit" value="Send" disabled/>) : (<Button submit={() => this.submit(sessionStorage.getItem("email"), user, this.state.message)} text="Send"/>)}
+                                            {this.state.message.length === 0 ? (<Button disabled={true} text="Submit"/>) : (<Button submit={
+                                                () => this.submit(sessionStorage.getItem("email"), user, this.state.message)} text="Send"/>)}
                                         </td>
                                     </tr>
                                 </tbody>
@@ -130,13 +140,14 @@ class Messages extends React.Component {
                 {/*Form for sending messages to users not yet message; email address must belong to a registered user*/}
                 <p style={{"margin-left":"1%"}}>Receiver's email address:</p>
                 <TextEntry setValue={this.handleEmailValue} style={{"width":"96%", "margin-left":"1%"}}/>
-                {(this.state.invalidUser === true && this.state.emailValue.length !== 0) && <p class="invalid">email address not found</p>}
+                {(this.state.invalidUser === true && this.state.emailValue.length !== 0) && <p class="invalid" style={{"margin-left":"1%"}}>email address not found</p>}
                 <p style={{"margin-left":"1%"}}>Message:</p>
-                <TextEntry setValue={this.setNewMessage} value={this.state.newMessage} style={{"width":"96%", "margin-left":"1%"}}/><br/><br/>
-                {(this.state.invalidUser === true || this.state.emailValue === sessionStorage.getItem("email") || this.state.emailValue.length === 0 || this.state.newMessage.length === 0) ? (<input type="submit" value="Send" disabled style={{"width":"96.5%", "margin-left":"1%"}}/>) : (<Button submit={() => this.submit(sessionStorage.getItem("email"), this.state.emailValue, this.state.newMessage)} style={{"width":"97.5%", "margin-left":"1%"}} text="Send"/>)}
+                <TextEntry setValue={this.setNewMessage} value={this.state.newMessage} style={{"width":"96%", "margin-left":"1%"}}/><br/>
+                {(this.state.invalidUser === true || this.state.emailValue === sessionStorage.getItem("email") || this.state.emailValue.length === 0
+                    || this.state.newMessage.length === 0) ? (<Button disabled={true} style={{"width":"97%", "margin-left":"1%"}} text="Send"/>) : (<Button submit={
+                        () => this.submit(sessionStorage.getItem("email"), this.state.emailValue, this.state.newMessage)} style={{"width":"97.5%", "margin-left":"1%"}} text="Send"/>)}
+                <br/>
             </div>
         );
     }
 }
-
-export default Messages;

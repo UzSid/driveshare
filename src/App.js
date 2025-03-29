@@ -11,7 +11,7 @@ import Home from "./home";
 import NotificationList from "./notifications";
 import React, { useState } from 'react';
 
-function App() {
+export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
 
   const handleLogin = () => {
@@ -56,5 +56,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
