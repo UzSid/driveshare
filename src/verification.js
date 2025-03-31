@@ -48,7 +48,7 @@ export default class Verify extends React.Component {
         this.setState({password});
     }
 
-     submit = async() => {
+    submit = async() => {
         //use verification proxy to set verification status
         this.setState({invalid: this.verifProxy.verify(this.state.password)[0]});
         this.setState({verified: this.verifProxy.verify(this.state.password)[1]});

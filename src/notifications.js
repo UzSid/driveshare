@@ -3,19 +3,18 @@ import { FormDirector, Button } from './UIComponents';
 
 //observer interface
 const Observer = {
-    update: function() {},
-    display: function() {}
+    update: function() {}
 };
 
 //subject interface
 const Subject = {
     registerObserver: function() {},
-    removeObserver: function() {},
-    notifyObservers: function() {}
+    notifyObserver: function() {},
+    setNotification: function() {}
 }
 
 //concrete subject
-export class NotificationSubject extends React.Component{
+export class NotificationSubject extends React.Component {
     constructor() {
         super();
         this.observer = null;

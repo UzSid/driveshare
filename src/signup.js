@@ -43,15 +43,17 @@ export default class Signup extends React.Component{
     //handles email entry
     setEmail = (event) => {
         const email = event.target.value;
-        let arr = JSON.parse(sessionStorage.getItem("accountInfo"));
+        let accountInfo = JSON.parse(sessionStorage.getItem("accountInfo"));
+        if (accountInfo !== null) {
         //check if the password is taken
-        for (var i = 0; i < arr.length; i++) {
-            if (arr[i].email.toLowerCase() === email.toLowerCase()) {
-                this.setState({invalidEmail: true});
-                break;
-            }
-            else {
-                this.setState({invalidEmail: false});
+            for (var i = 0; i < accountInfo.length; i++) {
+                if (accountInfo[i].email.toLowerCase() === email.toLowerCase()) {
+                    this.setState({invalidEmail: true});
+                    break;
+                }
+                else {
+                    this.setState({invalidEmail: false});
+                }
             }
         }
         if (email.length <= 50) {
@@ -128,7 +130,7 @@ export default class Signup extends React.Component{
         if (status === "SUCCESS") {
             this.notificationSubject.setNotification(email, "email", "Congratulations, " + name +
                 "! You have successfully signed up for DriveShare!"); //notify user
-            window.location.reload(true); //refresh page
+            window.open("http://localhost:3000","_self"); //returns to login page
         }
         else {
             alert("Error signing up.");
@@ -144,7 +146,7 @@ export default class Signup extends React.Component{
                 <TextEntry setValue={this.setName} value={this.state.name}/>
                 <p>Email address</p>
                 <TextEntry setValue={this.setEmail} value={this.state.email}/>
-                {this.state.invalidEmail === true && <p>email address is already in use</p>}
+                {this.state.invalidEmail === true && <p class="invalid">email address is already in use</p>}
                 <p>Password</p>
                 <PasswordEntry setPassword={this.setPassword1} value={this.state.password1}/>
                 <p>Confirm password</p>

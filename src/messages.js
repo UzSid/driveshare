@@ -135,7 +135,8 @@ export default class Messages extends React.Component {
                             </table>
                     </Collapsible>
                 ))}
-                <br/><br/><br/>
+                {/* Add some space between existing conversations and the new conversation section */}
+                {this.messagedUsers.length > 0 && <div><br/><br/><br/></div>}
                 <h2 style={{"margin-left":"1%"}}>Start a new conversation</h2>
                 {/*Form for sending messages to users not yet message; email address must belong to a registered user*/}
                 <p style={{"margin-left":"1%"}}>Receiver's email address:</p>

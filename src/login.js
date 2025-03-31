@@ -32,11 +32,10 @@ class Login extends React.Component {
     }
 
     submit = async() => {
-        //Get account info from database
-        let response = await fetch("http://localhost/DriveShare/src/accountInfo.php");
-        let accountInfo = await response.json();
-        sessionStorage.setItem("accountInfo", accountInfo);
         try {
+            //Get account info from database
+            let response = await fetch("http://localhost/DriveShare/src/accountInfo.php");
+            let accountInfo = await response.json();
             for (var i = 0; i < accountInfo.length; i++) {
                 //Find email and password match
                 if (accountInfo[i].email.toLowerCase() === this.email.toLowerCase() && accountInfo[i].password === this.password) {

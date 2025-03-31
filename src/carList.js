@@ -69,7 +69,6 @@ class CarBuilder extends AbstractBuilder {
         catch {
             window.location.reload(true); //refresh page
         }
-
         return this.list;
     }
 }

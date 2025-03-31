@@ -70,6 +70,7 @@ export default class Rent extends React.Component {
                     <div>
                         {/*Dates are not shown if they are taken*/}
                         {!this.rentDates.includes(day) &&
+                        <div>
                             <table>
                                 <tbody>
                                     <tr>
@@ -77,8 +78,10 @@ export default class Rent extends React.Component {
                                         <td>{day}</td>
                                     </tr>
                                 </tbody>
-                            </table>}
+                            </table>
                             <br/>
+                        </div>
+                        }
                     </div>
                 ))}
                 {/*User must verify themselves to rent a car (see verification.js)*/}

@@ -4,15 +4,13 @@ import React from "react";
 
 //director
 export const FormDirector = {
-    setEmail: function() {},
-    setPassword: function() {},
     submit: function() {}
 }
 
 //colleague
 const Widget = {
-    setValue: function() {},
-    submit: function() {}
+    onClick: function() {},
+    onChange: function() {}
 }
 
 //concrete colleague

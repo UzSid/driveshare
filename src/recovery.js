@@ -23,9 +23,8 @@ class EmailHandler extends Handler {
                 return 0;
             }
             //if email is found, send to successor
-            else if (accountInfo[i].email.toLowerCase() === email.toLowerCase()) {
-                let newArr = accountInfo[i];                
-                return this.successor.handleQuestion(newArr, question1, question2, question3);
+            else if (accountInfo[i].email.toLowerCase() === email.toLowerCase()) {           
+                return this.successor.handleQuestion(accountInfo[i], question1, question2, question3);
             }
         }
         //the number returned represents which question the user failed at
@@ -115,43 +114,48 @@ export default class Recovery extends React.Component {
     }
 
     submit = async() => {
-        //get account info
-        let response = await fetch("http://localhost/DriveShare/src/accountInfo.php");
-        let accountInfo = await response.json();
-        //create concrete handlers and set successor chain
-        let handleemail = new EmailHandler();
-        let handleq1 = new Q1Handler();
-        let handleq2 = new Q2Handler();
-        let handleq3 = new Q3Handler();
-        handleemail.setSuccessor(handleq1);
-        handleq1.setSuccessor(handleq2);
-        handleq2.setSuccessor(handleq3);
-        //have the first handler in the chain begin; if a number is returned, the corresponding error will be shown
-        let stateNum = handleemail.handleQuestion(accountInfo, this.state.email, this.state.question1, this.state.question2, this.state.question3);
-        if (stateNum === 0) {
+        try {
+            //get account info
+            let response = await fetch("http://localhost/DriveShare/src/accountInfo.php");
+            let accountInfo = await response.json();
+            //create concrete handlers and set successor chain
+            let handleemail = new EmailHandler();
+            let handleq1 = new Q1Handler();
+            let handleq2 = new Q2Handler();
+            let handleq3 = new Q3Handler();
+            handleemail.setSuccessor(handleq1);
+            handleq1.setSuccessor(handleq2);
+            handleq2.setSuccessor(handleq3);
+            //have the first handler in the chain begin; if a number is returned, the corresponding error will be shown
+            let stateNum = handleemail.handleQuestion(accountInfo, this.state.email, this.state.question1, this.state.question2, this.state.question3);
+            if (stateNum === 0) {
+                this.setState({invalidEmail: true});
+            }
+            else {
+                this.setState({invalidEmail: false});
+            }
+            if (stateNum === 1) {
+                this.setState({invalidQ1: true});
+            }
+            else {
+                this.setState({invalidQ1: false});
+            }
+            if (stateNum === 2) {
+                this.setState({invalidQ2: true});
+            }
+            else {
+                this.setState({invalidQ2: false});
+            }
+            if (stateNum === 3) {
+                this.setState({invalidQ3: true});
+            }
+            else {
+                this.setState({invalidQ3: false});
+            }
+        }
+        catch {
             this.setState({invalidEmail: true});
         }
-        else {
-            this.setState({invalidEmail: false});
-        }
-        if (stateNum === 1) {
-            this.setState({invalidQ1: true});
-        }
-        else {
-            this.setState({invalidQ1: false});
-        }
-        if (stateNum === 2) {
-            this.setState({invalidQ2: true});
-        }
-        else {
-            this.setState({invalidQ2: false});
-        }
-        if (stateNum === 3) {
-            this.setState({invalidQ3: true});
-        }
-        else {
-            this.setState({invalidQ3: false});
-        }               
     }
 
     render() {
