@@ -8,12 +8,18 @@ function Navigation(props) {
   .then(json => {
       sessionStorage.setItem("notifications", JSON.stringify(json));				
   });
-  let allNotifications = JSON.parse(sessionStorage.getItem("notifications")); //get notifications
-  for (var i = 0; i < allNotifications.length; i++) {
-      if (allNotifications[i].UID == sessionStorage.getItem("UID")) {
-          usersNotifications.push(allNotifications[i]);
-      }
+  try {
+    let allNotifications = JSON.parse(sessionStorage.getItem("notifications")); //get notifications
+    for (var i = 0; i < allNotifications.length; i++) {
+        if (allNotifications[i].UID == sessionStorage.getItem("UID")) {
+            usersNotifications.push(allNotifications[i]);
+        }
+    }
+  }    
+  catch {
+    window.location.reload(true); //refresh page
   }
+  
 
   return (
     <nav class="navBar">
